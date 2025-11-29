@@ -4,12 +4,20 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ON TIME | Future Optimization</title>
+        
+        <!-- ====== 最適化1: フォント読み込みの改善 ====== -->
+        <!-- preconnect は維持 -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap" rel="stylesheet">
+        <!-- フォントを非同期読み込みに変更 -->
+        <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap" media="print" onload="this.media='all'">
+        <noscript>
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap">
+        </noscript>
         
+        <!-- ====== 最適化2: Critical CSS（Above the fold のみ） ====== -->
         <style>
-            /* --- Base Settings --- */
             :root {
                 --bg-color: #ffffff;
                 --text-main: #333333;
@@ -21,22 +29,29 @@
             
             * { margin: 0; padding: 0; box-sizing: border-box; }
             
+            /* フォント読み込み前のフォールバック */
             body {
-                font-family: 'Montserrat', 'Noto Sans JP', sans-serif;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                 background-color: var(--bg-color);
                 color: var(--text-main);
                 overflow-x: hidden;
                 width: 100%;
             }
+            /* フォント読み込み完了後に適用 */
+            .fonts-loaded body {
+                font-family: 'Montserrat', 'Noto Sans JP', sans-serif;
+            }
             
-            /* --- Background Animation Canvas --- */
+            /* Canvas: 初期は非表示、遅延表示 */
             #tech-canvas {
                 position: fixed;
                 top: 0; left: 0; width: 100%; height: 100%;
-                z-index: -1; opacity: 0.6;
+                z-index: -1; 
+                opacity: 0;
+                transition: opacity 0.5s ease;
             }
+            #tech-canvas.visible { opacity: 0.6; }
             
-            /* --- Layout & Utilities --- */
             .container {
                 max-width: 1000px;
                 margin: 0 auto;
@@ -56,19 +71,22 @@
             
             h3 { font-size: 2.5rem; margin-bottom: 40px; font-weight: 300; text-align: center; }
             
-            /* --- Header --- */
+            /* Header: backdrop-filter を遅延適用 */
             header {
                 position: fixed; top: 0; width: 100%; padding: 20px 40px;
                 display: flex; justify-content: space-between; align-items: center;
                 z-index: 10;
+                background: rgba(255, 255, 255, 0.9); /* 初期はソリッドに近い背景 */
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            }
+            header.enhanced {
                 background: rgba(255, 255, 255, 0.7);
                 backdrop-filter: blur(10px);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             }
             
             .logo { font-weight: 900; font-size: 1.5rem; letter-spacing: 0.1em; cursor: pointer; }
             
-            /* --- Hero Section --- */
+            /* Hero - 最初に見える部分 */
             .hero {
                 height: 100vh;
                 display: flex; align-items: center; justify-content: center;
@@ -82,112 +100,18 @@
             .hero-content h2 { font-size: 2rem; font-weight: 700; margin-bottom: 40px; }
             .hero-content p { font-size: 1rem; color: var(--text-sub); letter-spacing: 0.1em; text-transform: uppercase; }
             
-            /* --- Philosophy Section --- */
-            .philosophy { text-align: center; background: rgba(255,255,255,0.8); }
-            .philosophy-text {
-                font-size: 1.1rem; line-height: 2.5; font-weight: 500;
-                max-width: 700px; margin: 0 auto; text-align: left;
+            /* 初期表示用のフェードイン（アニメーションなしで即表示） */
+            .fade-in { opacity: 1; transform: none; }
+            .fade-in.animate { 
+                opacity: 0; 
+                transform: translateY(20px); 
+                transition: opacity 1s, transform 1s; 
             }
-            .highlight { font-weight: 700; border-bottom: 2px solid #9D50BB; }
-            
-            /* --- Tech Keywords (Buttons) --- */
-            .tech-keywords {
-                display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; padding: 50px 0;
-            }
-            
-            .keyword {
-                padding: 15px 30px;
-                border-radius: 50px;
-                background: rgba(255, 255, 255, 0.9);
-                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-                font-family: 'Montserrat', sans-serif;
-                font-weight: 700;
-                color: #666;
-                font-size: 0.9rem;
-                transition: all 0.3s ease;
-                cursor: pointer; /* Clickable */
-                border: 1px solid rgba(0,0,0,0.05);
-                position: relative; overflow: hidden;
-            }
-            
-            .keyword::before {
-                content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                background: var(--accent-gradient); opacity: 0; transition: opacity 0.3s; z-index: -1;
-            }
-            
-            .keyword:hover {
-                transform: translateY(-5px); color: #fff;
-                box-shadow: 0 15px 40px rgba(157, 80, 187, 0.3); border-color: transparent;
-            }
-            .keyword:hover::before { opacity: 1; }
-            
-            /* --- Modal (Details Overlay) --- */
-            .modal-overlay {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(255, 255, 255, 0.6);
-                backdrop-filter: blur(15px);
-                z-index: 100;
-                display: flex; justify-content: center; align-items: center;
-                opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
-            }
-            .modal-overlay.active { opacity: 1; pointer-events: auto; }
-            
-            .modal-content {
-                background: #fff;
-                width: 90%; max-width: 800px; max-height: 90vh;
-                border-radius: 20px;
-                box-shadow: 0 25px 50px rgba(0,0,0,0.1);
-                padding: 50px;
-                position: relative;
-                overflow-y: auto;
-                transform: scale(0.9); transition: transform 0.4s ease;
-                border: 1px solid rgba(0,0,0,0.05);
-            }
-            .modal-overlay.active .modal-content { transform: scale(1); }
-            
-            .close-btn {
-                position: absolute; top: 20px; right: 20px;
-                font-size: 2rem; cursor: pointer; color: #999;
-                transition: color 0.3s;
-            }
-            .close-btn:hover { color: #333; }
-            
-            /* Modal Content Styling */
-            .modal-title { font-size: 2.5rem; margin-bottom: 20px; font-weight: 900; }
-            .modal-desc { font-size: 1.1rem; color: #555; margin-bottom: 40px; line-height: 1.8; }
-            
-            .case-study {
-                background: #f8f9fa; border-left: 5px solid #00C6FF;
-                padding: 30px; border-radius: 0 10px 10px 0;
-            }
-            .case-label {
-                font-size: 0.8rem; font-weight: 700; color: #00C6FF;
-                text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block;
-            }
-            .case-title { font-weight: 700; font-size: 1.2rem; margin-bottom: 10px; }
-            .case-text { font-size: 0.95rem; color: #666; line-height: 1.6; }
-            
-            /* Hidden Source Content */
-            .detail-source { display: none; }
-            
-            /* --- Footer --- */
-            footer {
-                background: linear-gradient(to right, #f9f9f9, #ffffff);
-                padding: 80px 0 40px; text-align: center; border-top: 1px solid #eee;
-            }
-            .contact-item { font-size: 1.2rem; margin: 10px 0; font-weight: 500; }
-            .notice { font-size: 0.8rem; color: #999; margin-bottom: 30px; padding: 20px; border: 1px solid #eee; display: inline-block; }
-            .copyright { font-size: 0.8rem; color: #ccc; }
-            
-            /* --- Animations --- */
-            .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 1s, transform 1s; }
-            .fade-in.visible { opacity: 1; transform: translateY(0); }
+            .fade-in.animate.visible { opacity: 1; transform: translateY(0); }
             
             @media (max-width: 768px) {
                 .hero-content h1 { font-size: 3rem; }
                 .hero-content h2 { font-size: 1.5rem; }
-                .modal-content { padding: 30px; }
-                .modal-title { font-size: 1.8rem; }
             }
         </style>
     </head>
@@ -368,8 +292,6 @@
         <footer>
             <div class="container fade-in">
                 <div class="contact-info">
-                    <!-- <div class="contact-item">TEL: 03-XXXX-XXXX</div> -->
-                    <!-- <div class="contact-item">Email: contact@ontime-example.com</div> -->
                 </div>
                 <div class="notice">
                     ※ 本サイトは、代表者が直接名刺交換をさせていただいた方へのご案内用です。<br>
@@ -381,126 +303,266 @@
             </div>
         </footer>
         
+        <!-- ====== 最適化3: Non-Critical CSS を遅延読み込み ====== -->
+        <style id="deferred-styles">
+            /* Philosophy Section */
+            .philosophy { text-align: center; background: rgba(255,255,255,0.8); }
+            .philosophy-text {
+                font-size: 1.1rem; line-height: 2.5; font-weight: 500;
+                max-width: 700px; margin: 0 auto; text-align: left;
+            }
+            .highlight { font-weight: 700; border-bottom: 2px solid #9D50BB; }
+            
+            /* Tech Keywords */
+            .tech-keywords {
+                display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; padding: 50px 0;
+            }
+            
+            .keyword {
+                padding: 15px 30px;
+                border-radius: 50px;
+                background: rgba(255, 255, 255, 0.9);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 700;
+                color: #666;
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                border: 1px solid rgba(0,0,0,0.05);
+                position: relative; overflow: hidden;
+            }
+            
+            .keyword::before {
+                content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                background: var(--accent-gradient); opacity: 0; transition: opacity 0.3s; z-index: -1;
+            }
+            
+            .keyword:hover {
+                transform: translateY(-5px); color: #fff;
+                box-shadow: 0 15px 40px rgba(157, 80, 187, 0.3); border-color: transparent;
+            }
+            .keyword:hover::before { opacity: 1; }
+            
+            /* Modal */
+            .modal-overlay {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(255, 255, 255, 0.6);
+                backdrop-filter: blur(15px);
+                z-index: 100;
+                display: flex; justify-content: center; align-items: center;
+                opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+            }
+            .modal-overlay.active { opacity: 1; pointer-events: auto; }
+            
+            .modal-content {
+                background: #fff;
+                width: 90%; max-width: 800px; max-height: 90vh;
+                border-radius: 20px;
+                box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+                padding: 50px;
+                position: relative;
+                overflow-y: auto;
+                transform: scale(0.9); transition: transform 0.4s ease;
+                border: 1px solid rgba(0,0,0,0.05);
+            }
+            .modal-overlay.active .modal-content { transform: scale(1); }
+            
+            .close-btn {
+                position: absolute; top: 20px; right: 20px;
+                font-size: 2rem; cursor: pointer; color: #999;
+                transition: color 0.3s;
+            }
+            .close-btn:hover { color: #333; }
+            
+            .modal-title { font-size: 2.5rem; margin-bottom: 20px; font-weight: 900; }
+            .modal-desc { font-size: 1.1rem; color: #555; margin-bottom: 40px; line-height: 1.8; }
+            
+            .case-study {
+                background: #f8f9fa; border-left: 5px solid #00C6FF;
+                padding: 30px; border-radius: 0 10px 10px 0;
+            }
+            .case-label {
+                font-size: 0.8rem; font-weight: 700; color: #00C6FF;
+                text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block;
+            }
+            .case-title { font-weight: 700; font-size: 1.2rem; margin-bottom: 10px; }
+            .case-text { font-size: 0.95rem; color: #666; line-height: 1.6; }
+            
+            .detail-source { display: none; }
+            
+            /* Footer */
+            footer {
+                background: linear-gradient(to right, #f9f9f9, #ffffff);
+                padding: 80px 0 40px; text-align: center; border-top: 1px solid #eee;
+            }
+            .contact-item { font-size: 1.2rem; margin: 10px 0; font-weight: 500; }
+            .notice { font-size: 0.8rem; color: #999; margin-bottom: 30px; padding: 20px; border: 1px solid #eee; display: inline-block; }
+            .copyright { font-size: 0.8rem; color: #ccc; }
+            
+            @media (max-width: 768px) {
+                .modal-content { padding: 30px; }
+                .modal-title { font-size: 1.8rem; }
+            }
+        </style>
+        
+        <!-- ====== 最適化4: JavaScript を遅延実行 ====== -->
         <script>
-            // --- Canvas Animation Logic (背景) ---
-            const canvas = document.getElementById('tech-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            let width, height;
-            let particles = [];
-            const colors = ['#00C6FF', '#9D50BB', '#FF4B1F', '#333333'];
-            
-            function resize() {
-                width = window.innerWidth;
-                height = window.innerHeight;
-                canvas.width = width;
-                canvas.height = height;
-            }
-            window.addEventListener('resize', resize);
-            resize();
-            
-            class Particle {
-                constructor() {
-                    this.x = Math.random() * width;
-                    this.y = Math.random() * height;
-                    this.vx = (Math.random() - 0.5) * 1;
-                    this.vy = (Math.random() - 0.5) * 1;
-                    this.size = Math.random() * 3 + 1;
-                    this.color = colors[Math.floor(Math.random() * colors.length)];
-                }
-                update() {
-                    this.x += this.vx; this.y += this.vy;
-                    if (this.x < 0) this.x = width;
-                    if (this.x > width) this.x = 0;
-                    if (this.y < 0) this.y = height;
-                    if (this.y > height) this.y = 0;
-                }
-                draw() {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fillStyle = this.color;
-                    ctx.fill();
-                }
+            // フォント読み込み検知
+            if ('fonts' in document) {
+                Promise.all([
+                    document.fonts.load('700 1em Montserrat'),
+                    document.fonts.load('500 1em "Noto Sans JP"')
+                ]).then(() => {
+                    document.documentElement.classList.add('fonts-loaded');
+                });
             }
             
-            function initParticles() {
-                particles = [];
+            // 初期表示完了後に重い処理を実行
+            function initAfterPaint() {
+                // Header の backdrop-filter を有効化
+                document.querySelector('header').classList.add('enhanced');
+                
+                // fade-in アニメーションを有効化
+                document.querySelectorAll('.fade-in').forEach(el => {
+                    el.classList.add('animate');
+                });
+                
+                // IntersectionObserver でフェードインを監視
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                
+                document.querySelectorAll('.fade-in.animate').forEach(el => observer.observe(el));
+            }
+            
+            // Canvas アニメーションを遅延初期化
+            function initCanvas() {
+                const canvas = document.getElementById('tech-canvas');
+                const ctx = canvas.getContext('2d');
+                
+                let width, height;
+                let particles = [];
+                const colors = ['#00C6FF', '#9D50BB', '#FF4B1F', '#333333'];
+                
+                function resize() {
+                    width = window.innerWidth;
+                    height = window.innerHeight;
+                    canvas.width = width;
+                    canvas.height = height;
+                }
+                window.addEventListener('resize', resize);
+                resize();
+                
+                class Particle {
+                    constructor() {
+                        this.x = Math.random() * width;
+                        this.y = Math.random() * height;
+                        this.vx = (Math.random() - 0.5) * 1;
+                        this.vy = (Math.random() - 0.5) * 1;
+                        this.size = Math.random() * 3 + 1;
+                        this.color = colors[Math.floor(Math.random() * colors.length)];
+                    }
+                    update() {
+                        this.x += this.vx; this.y += this.vy;
+                        if (this.x < 0) this.x = width;
+                        if (this.x > width) this.x = 0;
+                        if (this.y < 0) this.y = height;
+                        if (this.y > height) this.y = 0;
+                    }
+                    draw() {
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fillStyle = this.color;
+                        ctx.fill();
+                    }
+                }
+                
                 const particleCount = width > 768 ? 80 : 40;
                 for (let i = 0; i < particleCount; i++) particles.push(new Particle());
-            }
-            initParticles();
-            
-            function drawLines() {
-                for (let i = 0; i < particles.length; i++) {
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const dx = particles[i].x - particles[j].x;
-                        const dy = particles[i].y - particles[j].y;
-                        const dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist < 150) {
-                            ctx.beginPath();
-                            ctx.strokeStyle = `rgba(100, 100, 100, ${1 - dist/150})`;
-                            ctx.lineWidth = 0.5;
-                            ctx.moveTo(particles[i].x, particles[i].y);
-                            ctx.lineTo(particles[j].x, particles[j].y);
-                            ctx.stroke();
+                
+                function drawLines() {
+                    for (let i = 0; i < particles.length; i++) {
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const dx = particles[i].x - particles[j].x;
+                            const dy = particles[i].y - particles[j].y;
+                            const dist = Math.sqrt(dx*dx + dy*dy);
+                            if (dist < 150) {
+                                ctx.beginPath();
+                                ctx.strokeStyle = `rgba(100, 100, 100, ${1 - dist/150})`;
+                                ctx.lineWidth = 0.5;
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.stroke();
+                            }
                         }
                     }
                 }
+                
+                function animate() {
+                    ctx.clearRect(0, 0, width, height);
+                    particles.forEach(p => { p.update(); p.draw(); });
+                    drawLines();
+                    requestAnimationFrame(animate);
+                }
+                
+                // Canvas を表示してアニメーション開始
+                canvas.classList.add('visible');
+                animate();
             }
             
-            function animate() {
-                ctx.clearRect(0, 0, width, height);
-                particles.forEach(p => { p.update(); p.draw(); });
-                drawLines();
-                requestAnimationFrame(animate);
-            }
-            animate();
-            
-            
-            // --- Modal Logic (詳細表示) ---
-            const modalOverlay = document.getElementById('modal-overlay');
-            const modalBody = document.getElementById('modal-body');
-            const closeBtn = document.getElementById('modal-close');
-            const keywords = document.querySelectorAll('.keyword');
-            
-            // キーワードクリック時の動作
-            keywords.forEach(keyword => {
+            // Modal Logic
+            function initModal() {
+                const modalOverlay = document.getElementById('modal-overlay');
+                const modalBody = document.getElementById('modal-body');
+                const closeBtn = document.getElementById('modal-close');
+                const keywords = document.querySelectorAll('.keyword');
+                
+                keywords.forEach(keyword => {
                     keyword.addEventListener('click', () => {
-                            const targetId = 'content-' + keyword.getAttribute('data-target');
-                            const content = document.getElementById(targetId).innerHTML;
-                            
-                            modalBody.innerHTML = content;
-                            modalOverlay.classList.add('active');
-                            // モーダル表示時にスクロールを止める
-                            document.body.style.overflow = 'hidden';
+                        const targetId = 'content-' + keyword.getAttribute('data-target');
+                        const content = document.getElementById(targetId).innerHTML;
+                        
+                        modalBody.innerHTML = content;
+                        modalOverlay.classList.add('active');
+                        document.body.style.overflow = 'hidden';
                     });
-            });
-            
-            // 閉じる動作
-            function closeModal() {
-                modalOverlay.classList.remove('active');
-                document.body.style.overflow = '';
+                });
+                
+                function closeModal() {
+                    modalOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+                
+                closeBtn.addEventListener('click', closeModal);
+                
+                modalOverlay.addEventListener('click', (e) => {
+                    if (e.target === modalOverlay) closeModal();
+                });
             }
             
-            closeBtn.addEventListener('click', closeModal);
-            
-            // 背景クリックでも閉じる
-            modalOverlay.addEventListener('click', (e) => {
-                    if (e.target === modalOverlay) closeModal();
+            // ====== 実行タイミングの最適化 ======
+            // 1. DOMContentLoaded 直後: 軽い処理
+            document.addEventListener('DOMContentLoaded', () => {
+                initModal();
             });
             
+            // 2. 初期描画完了後: UI拡張
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(initAfterPaint, { timeout: 100 });
+            } else {
+                setTimeout(initAfterPaint, 50);
+            }
             
-            // --- Fade-in Effect ---
-            const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                            if (entry.isIntersecting) {
-                                entry.target.classList.add('visible');
-                            }
-                    });
-            }, { threshold: 0.1 });
-            
-            document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-            
+            // 3. ページ読み込み完了後: Canvas アニメーション
+            window.addEventListener('load', () => {
+                // 少し遅延させてからCanvas開始
+                setTimeout(initCanvas, 200);
+            });
         </script>
     </body>
 </html>
