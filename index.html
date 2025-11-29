@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ON TIME | Future Optimization</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap" rel="stylesheet">
+        
+        <style>
+            /* --- Base Settings --- */
+            :root {
+                --bg-color: #ffffff;
+                --text-main: #333333;
+                --text-sub: #666666;
+                --accent-gradient: linear-gradient(135deg, #00C6FF, #9D50BB, #FF4B1F);
+                --glass-bg: rgba(255, 255, 255, 0.85);
+                --modal-bg: rgba(255, 255, 255, 0.95);
+            }
+            
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            
+            body {
+                font-family: 'Montserrat', 'Noto Sans JP', sans-serif;
+                background-color: var(--bg-color);
+                color: var(--text-main);
+                overflow-x: hidden;
+                width: 100%;
+            }
+            
+            /* --- Background Animation Canvas --- */
+            #tech-canvas {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                z-index: -1; opacity: 0.6;
+            }
+            
+            /* --- Layout & Utilities --- */
+            .container {
+                max-width: 1000px;
+                margin: 0 auto;
+                padding: 0 20px;
+                position: relative;
+                z-index: 1;
+            }
+            
+            section { padding: 100px 0; }
+            
+            .gradient-text {
+                background: var(--accent-gradient);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            
+            h3 { font-size: 2.5rem; margin-bottom: 40px; font-weight: 300; text-align: center; }
+            
+            /* --- Header --- */
+            header {
+                position: fixed; top: 0; width: 100%; padding: 20px 40px;
+                display: flex; justify-content: space-between; align-items: center;
+                z-index: 10;
+                background: rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(10px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            }
+            
+            .logo { font-weight: 900; font-size: 1.5rem; letter-spacing: 0.1em; cursor: pointer; }
+            
+            /* --- Hero Section --- */
+            .hero {
+                height: 100vh;
+                display: flex; align-items: center; justify-content: center;
+                text-align: center;
+            }
+            
+            .hero-content h1 {
+                font-size: 5rem; font-weight: 900; line-height: 1.1; margin-bottom: 20px;
+                letter-spacing: -0.02em;
+            }
+            .hero-content h2 { font-size: 2rem; font-weight: 700; margin-bottom: 40px; }
+            .hero-content p { font-size: 1rem; color: var(--text-sub); letter-spacing: 0.1em; text-transform: uppercase; }
+            
+            /* --- Philosophy Section --- */
+            .philosophy { text-align: center; background: rgba(255,255,255,0.8); }
+            .philosophy-text {
+                font-size: 1.1rem; line-height: 2.5; font-weight: 500;
+                max-width: 700px; margin: 0 auto; text-align: left;
+            }
+            .highlight { font-weight: 700; border-bottom: 2px solid #9D50BB; }
+            
+            /* --- Tech Keywords (Buttons) --- */
+            .tech-keywords {
+                display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; padding: 50px 0;
+            }
+            
+            .keyword {
+                padding: 15px 30px;
+                border-radius: 50px;
+                background: rgba(255, 255, 255, 0.9);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 700;
+                color: #666;
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+                cursor: pointer; /* Clickable */
+                border: 1px solid rgba(0,0,0,0.05);
+                position: relative; overflow: hidden;
+            }
+            
+            .keyword::before {
+                content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                background: var(--accent-gradient); opacity: 0; transition: opacity 0.3s; z-index: -1;
+            }
+            
+            .keyword:hover {
+                transform: translateY(-5px); color: #fff;
+                box-shadow: 0 15px 40px rgba(157, 80, 187, 0.3); border-color: transparent;
+            }
+            .keyword:hover::before { opacity: 1; }
+            
+            /* --- Modal (Details Overlay) --- */
+            .modal-overlay {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(255, 255, 255, 0.6);
+                backdrop-filter: blur(15px);
+                z-index: 100;
+                display: flex; justify-content: center; align-items: center;
+                opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+            }
+            .modal-overlay.active { opacity: 1; pointer-events: auto; }
+            
+            .modal-content {
+                background: #fff;
+                width: 90%; max-width: 800px; max-height: 90vh;
+                border-radius: 20px;
+                box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+                padding: 50px;
+                position: relative;
+                overflow-y: auto;
+                transform: scale(0.9); transition: transform 0.4s ease;
+                border: 1px solid rgba(0,0,0,0.05);
+            }
+            .modal-overlay.active .modal-content { transform: scale(1); }
+            
+            .close-btn {
+                position: absolute; top: 20px; right: 20px;
+                font-size: 2rem; cursor: pointer; color: #999;
+                transition: color 0.3s;
+            }
+            .close-btn:hover { color: #333; }
+            
+            /* Modal Content Styling */
+            .modal-title { font-size: 2.5rem; margin-bottom: 20px; font-weight: 900; }
+            .modal-desc { font-size: 1.1rem; color: #555; margin-bottom: 40px; line-height: 1.8; }
+            
+            .case-study {
+                background: #f8f9fa; border-left: 5px solid #00C6FF;
+                padding: 30px; border-radius: 0 10px 10px 0;
+            }
+            .case-label {
+                font-size: 0.8rem; font-weight: 700; color: #00C6FF;
+                text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block;
+            }
+            .case-title { font-weight: 700; font-size: 1.2rem; margin-bottom: 10px; }
+            .case-text { font-size: 0.95rem; color: #666; line-height: 1.6; }
+            
+            /* Hidden Source Content */
+            .detail-source { display: none; }
+            
+            /* --- Footer --- */
+            footer {
+                background: linear-gradient(to right, #f9f9f9, #ffffff);
+                padding: 80px 0 40px; text-align: center; border-top: 1px solid #eee;
+            }
+            .contact-item { font-size: 1.2rem; margin: 10px 0; font-weight: 500; }
+            .notice { font-size: 0.8rem; color: #999; margin-bottom: 30px; padding: 20px; border: 1px solid #eee; display: inline-block; }
+            .copyright { font-size: 0.8rem; color: #ccc; }
+            
+            /* --- Animations --- */
+            .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 1s, transform 1s; }
+            .fade-in.visible { opacity: 1; transform: translateY(0); }
+            
+            @media (max-width: 768px) {
+                .hero-content h1 { font-size: 3rem; }
+                .hero-content h2 { font-size: 1.5rem; }
+                .modal-content { padding: 30px; }
+                .modal-title { font-size: 1.8rem; }
+            }
+        </style>
+    </head>
+    <body>
+        
+        <canvas id="tech-canvas"></canvas>
+        
+        <header>
+            <div class="logo gradient-text" onclick="window.scrollTo({top:0, behavior:'smooth'})">ON TIME</div>
+        </header>
+        
+        <div class="container">
+            <section class="hero">
+                <div class="hero-content fade-in">
+                    <p>Advanced Efficiency Solutions</p>
+                    <h1 class="gradient-text">残業を<br>過去にする。</h1>
+                    <h2>Time is your asset.</h2>
+                </div>
+            </section>
+            
+            <section class="philosophy fade-in">
+                <h3 class="gradient-text">PHILOSOPHY</h3>
+                <div class="philosophy-text">
+                    <p>
+                        時間は、人類にとって最も希少な資源です。<br>
+                        しかし、多くのビジネスは旧態依然としたプロセスに時間を奪われています。<br><br>
+                        私たちは、<span class="highlight">圧倒的な技術力</span>で、その非効率を徹底的に排除する。<br><br>
+                        ON TIME。<br>
+                        それは単なるツールではありません。<br>
+                        あなたが、本来向き合うべき創造的なへの回帰。<br>
+                        それが、私たちの提供する「未来」。
+                    </p>
+                </div>
+            </section>
+            
+            <section class="tech-abstract fade-in">
+                <h3 class="gradient-text" style="font-size: 1.5rem; margin-bottom: 20px;">CORE TECHNOLOGIES</h3>
+                <div class="tech-keywords">
+                    <div class="keyword" data-target="ai">AI Optimization</div>
+                    <div class="keyword" data-target="cloud">Cloud Native</div>
+                    <div class="keyword" data-target="workflow">Automated Workflow</div>
+                    <div class="keyword" data-target="data">Data Analytics</div>
+                    <div class="keyword" data-target="scale">Scalability</div>
+                    <div class="keyword" data-target="security">Security First</div>
+                    <div class="keyword" data-target="realtime">Real-time Processing</div>
+                </div>
+            </section>
+        </div>
+        
+        <div class="modal-overlay" id="modal-overlay">
+            <div class="modal-content">
+                <span class="close-btn" id="modal-close">&times;</span>
+                <div id="modal-body">
+                </div>
+            </div>
+        </div>
+        
+        <div class="detail-source" id="content-ai">
+            <h4 class="modal-title gradient-text">AI Optimization</h4>
+            <p class="modal-desc">
+                機械学習アルゴリズムを用い、複雑な変数を含む意思決定プロセスを最適化します。
+                人間の経験則では到達できない精度で、リソース配分の最大効率化を実現します。
+            </p>
+            <div class="case-study">
+                <span class="case-label">SME Case Study</span>
+                <div class="case-title">従業員シフト作成の完全自動化</div>
+                <div class="case-text">
+                    熟練の店長が毎月3日かけてパズルのように組んでいたスタッフのシフト表。<br>
+                    AIがスタッフの希望、スキル、過去の繁忙データを学習し、わずか10秒で最適解を算出。<br>
+                    店長は「人」のマネジメントという本来の業務に集中できるようになりました。
+                </div>
+            </div>
+        </div>
+        
+        <div class="detail-source" id="content-cloud">
+            <h4 class="modal-title gradient-text">Cloud Native</h4>
+            <p class="modal-desc">
+                場所を選ばない、真のボーダレスな業務環境を構築。
+                サーバー管理の物理的制約から解放され、最新のインフラストラクチャを即座に利用可能です。
+            </p>
+            <div class="case-study">
+                <span class="case-label">SME Case Study</span>
+                <div class="case-title">脱VPN・脱オフィス依存</div>
+                <div class="case-text">
+                    「社内のPCでないとファイルが見られない」という理由だけで出社していた営業チーム。<br>
+                    セキュアなクラウド環境への移行により、商談直後のカフェから見積書作成・共有が可能に。<br>
+                    移動時間だけで月間20時間の残業削減に成功しました。
+                </div>
+            </div>
+        </div>
+        
+        <div class="detail-source" id="content-workflow">
+            <h4 class="modal-title gradient-text">Automated Workflow</h4>
+            <p class="modal-desc">
+                反復的なタスクをロボティック・プロセス・オートメーション(RPA)等の技術で無人化。
+                ヒューマンエラーをゼロにし、業務スピードを劇的に向上させます。
+            </p>
+            <div class="case-study">
+                <span class="case-label">SME Case Study</span>
+                <div class="case-title">請求書発行・消込作業の無人化</div>
+                <div class="case-text">
+                    月末になると経理担当が残業して行っていた、Excel入力と請求書PDFのメール送信。<br>
+                    受注データから自動で請求書を生成し、送信、入金確認の消込までを全自動化。<br>
+                    「月末が憂鬱」という経理部の空気が一変しました。
+                </div>
+            </div>
+        </div>
+        
+        <div class="detail-source" id="content-data">
+            <h4 class="modal-title gradient-text">Data Analytics</h4>
+            <p class="modal-desc">
+                埋もれていた業務データ可視化し、経営判断の根拠に変えます。
+                直感ではなく、事実に基づいた戦略立案をサポートします。
+            </p>
+            <div class="case-study">
+                <span class="case-label">SME Case Study</span>
+                <div class="case-title">「勘」に頼らない在庫発注</div>
+                <div class="case-text">
+                    「なんとなく売れそう」で発注し、在庫過多や欠品を繰り返していた小売店。<br>
+                    過去の販売傾向、天候、曜日などのデータ分析を導入し、需要予測を可視化。<br>
+                    廃棄ロスを削減しつつ、機会損失も防ぐ適正在庫を実現しました。
+                </div>
+            </div>
+        </div>
+        
+        <div class="detail-source" id="content-scale">
+            <h4 class="modal-title gradient-text">Scalability</h4>
+            <p class="modal-desc">
+                ビジネスの成長に合わせて柔軟に拡張可能なシステム設計。
+                急激なアクセスの増加やデータ量の増大にも、パフォーマンスを落とさず対応します。
+            </p>
+            <div class="case-study">
+                <span class="case-label">SME Case Study</span>
+                <div class="case-title">繁忙期のシステムダウン回避</div>
+                <div class="case-text">
+                    お歳暮シーズンになると注文が殺到し、受注システムが固まって電話対応に追われていた食品加工業。<br>
+                    負荷に応じて自動で性能が拡張する構成に変更。<br>
+                    注文数が10倍になるピーク時でも、通常通りサクサク動くシステムで機会損失ゼロへ。
+                </div>
+            </div>
+        </div>
+        
+        <div class="detail-source" id="content-security">
+            <h4 class="modal-title gradient-text">Security First</h4>
+            <p class="modal-desc">
+                利便性と堅牢なセキュリティの両立。
+                ゼロトラストアーキテクチャを採用し、大切な顧客情報や企業秘密をあらゆる脅威から守り抜きます。
+            </p>
+            <div class="case-study">
+                <span class="case-label">SME Case Study</span>
+                <div class="case-title">ランサムウェア対策と顧客信頼</div>
+                <div class="case-text">
+                    「うちは小さいから狙われない」と考えていたが、取引先のセキュリティ要件が厳格化。<br>
+                    大企業水準のセキュリティ基盤を導入することで、自社の防衛だけでなく、<br>
+                    大手クライアントからの信頼獲得・新規取引の決め手となりました。
+                </div>
+            </div>
+        </div>
+        
+        <div class="detail-source" id="content-realtime">
+            <h4 class="modal-title gradient-text">Real-time Processing</h4>
+            <p class="modal-desc">
+                情報のタイムラグを極限まで排除。
+                現場で起きたことが、即座に経営データとして反映されるスピード感を提供します。
+            </p>
+            <div class="case-study">
+                <span class="case-label">SME Case Study</span>
+                <div class="case-title">在庫情報のリアルタイム共有</div>
+                <div class="case-text">
+                    倉庫と営業担当の連携が電話のみで、「あると言ったのに在庫がない」トラブルが頻発。<br>
+                    ハンディターミナルでの検品が瞬時に全社の在庫表へ反映される仕組みを構築。<br>
+                    営業は自信を持って納期回答ができ、顧客満足度が向上しました。
+                </div>
+            </div>
+        </div>
+        
+        
+        <footer>
+            <div class="container fade-in">
+                <div class="contact-info">
+                    <!-- <div class="contact-item">TEL: 03-XXXX-XXXX</div> -->
+                    <!-- <div class="contact-item">Email: contact@ontime-example.com</div> -->
+                </div>
+                <div class="notice">
+                    ※ 本サイトは、代表者が直接名刺交換をさせていただいた方へのご案内用です。<br>
+                    恐れ入りますが、直接のご面識のない方からのお問い合わせはご遠慮いただいております。
+                </div>
+                <div class="copyright">
+                    &copy; 2025 ON TIME. All Rights Reserved.
+                </div>
+            </div>
+        </footer>
+        
+        <script>
+            // --- Canvas Animation Logic (背景) ---
+            const canvas = document.getElementById('tech-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            let width, height;
+            let particles = [];
+            const colors = ['#00C6FF', '#9D50BB', '#FF4B1F', '#333333'];
+            
+            function resize() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 1;
+                    this.vy = (Math.random() - 0.5) * 1;
+                    this.size = Math.random() * 3 + 1;
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                }
+                update() {
+                    this.x += this.vx; this.y += this.vy;
+                    if (this.x < 0) this.x = width;
+                    if (this.x > width) this.x = 0;
+                    if (this.y < 0) this.y = height;
+                    if (this.y > height) this.y = 0;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+            
+            function initParticles() {
+                particles = [];
+                const particleCount = width > 768 ? 80 : 40;
+                for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+            }
+            initParticles();
+            
+            function drawLines() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 150) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = `rgba(100, 100, 100, ${1 - dist/150})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => { p.update(); p.draw(); });
+                drawLines();
+                requestAnimationFrame(animate);
+            }
+            animate();
+            
+            
+            // --- Modal Logic (詳細表示) ---
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalBody = document.getElementById('modal-body');
+            const closeBtn = document.getElementById('modal-close');
+            const keywords = document.querySelectorAll('.keyword');
+            
+            // キーワードクリック時の動作
+            keywords.forEach(keyword => {
+                    keyword.addEventListener('click', () => {
+                            const targetId = 'content-' + keyword.getAttribute('data-target');
+                            const content = document.getElementById(targetId).innerHTML;
+                            
+                            modalBody.innerHTML = content;
+                            modalOverlay.classList.add('active');
+                            // モーダル表示時にスクロールを止める
+                            document.body.style.overflow = 'hidden';
+                    });
+            });
+            
+            // 閉じる動作
+            function closeModal() {
+                modalOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            closeBtn.addEventListener('click', closeModal);
+            
+            // 背景クリックでも閉じる
+            modalOverlay.addEventListener('click', (e) => {
+                    if (e.target === modalOverlay) closeModal();
+            });
+            
+            
+            // --- Fade-in Effect ---
+            const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('visible');
+                            }
+                    });
+            }, { threshold: 0.1 });
+            
+            document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+            
+        </script>
+    </body>
+</html>
