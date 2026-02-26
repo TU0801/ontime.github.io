@@ -904,7 +904,7 @@ function renderResults() {
         q: state.selectedIssues.join(','),
         f: state.followupAnswers
     }));
-    const shareURL = `${location.origin}/shindan.html?r=${encoded}`;
+    const shareURL = `${location.origin}/check?r=${encoded}`;
     document.getElementById('share-url-display').textContent = shareURL;
     document.getElementById('share-url-display').dataset.url = shareURL;
 }
