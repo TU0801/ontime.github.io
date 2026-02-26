@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>課題診断 | ON TIME</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --accent-gradient: linear-gradient(135deg, #00C6FF, #9D50BB, #FF4B1F);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Montserrat', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        #tech-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        .gradient-text {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Header */
+        header {
+            position: fixed; top: 0; width: 100%; padding: 16px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        .logo { font-weight: 900; font-size: 1.4rem; letter-spacing: 0.1em; cursor: pointer; }
+        .back-link {
+            font-size: 0.85rem; font-weight: 700; color: var(--text-sub);
+            text-decoration: none; letter-spacing: 0.05em;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--text-main); }
+
+        /* Progress bar */
+        .progress-wrap {
+            position: fixed; top: 64px; left: 0; width: 100%;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            z-index: 9;
+            padding: 14px 0 10px;
+        }
+        .progress-inner {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+        }
+        .progress-track {
+            position: absolute;
+            top: 50%; left: 60px; right: 60px;
+            height: 2px;
+            background: #eee;
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+        .progress-track-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+        .step-dots {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1;
+        }
+        .step-dot {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+        .dot-circle {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: #eee;
+            color: #aaa;
+            font-size: 0.7rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s;
+            border: 2px solid #eee;
+        }
+        .dot-label {
+            font-size: 0.65rem; color: #bbb; font-weight: 500;
+            transition: color 0.3s;
+        }
+        .step-dot.active .dot-circle {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            color: #fff;
+        }
+        .step-dot.active .dot-label { color: var(--text-main); }
+        .step-dot.done .dot-circle {
+            background: #00C6FF;
+            border-color: transparent;
+            color: #fff;
+        }
+        .step-dot.done .dot-label { color: var(--text-sub); }
+
+        /* Main container */
+        .main {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 160px 20px 60px;
+        }
+
+        /* Step panels */
+        .step-panel { display: none; }
+        .step-panel.active { display: block; animation: fadeUp 0.35s ease both; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-heading {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+        .step-heading h2 {
+            font-size: 1.6rem; font-weight: 900; margin-bottom: 8px;
+        }
+        .step-heading p {
+            font-size: 0.9rem; color: var(--text-sub); line-height: 1.6;
+        }
+
+        /* Selection grids */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        @media (max-width: 640px) {
+            .card-grid { grid-template-columns: 1fr; }
+        }
+        @media (min-width: 641px) and (max-width: 900px) {
+            .card-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .sel-card {
+            min-height: 80px;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid rgba(0,0,0,0.07);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center;
+            font-size: 0.9rem; font-weight: 700;
+            color: var(--text-sub);
+            transition: all 0.25s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+        .sel-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity 0.25s;
+            z-index: 0;
+        }
+        .sel-card span { position: relative; z-index: 1; }
+        .sel-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(157,80,187,0.15);
+            border-color: transparent;
+        }
+        .sel-card:hover::before { opacity: 1; }
+        .sel-card:hover { color: #fff; }
+
+        .sel-card.selected {
+            border-color: transparent;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(157,80,187,0.2);
+        }
+        .sel-card.selected::before { opacity: 1; }
+
+        .check-mark {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 18px; height: 18px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem;
+            color: #9D50BB;
+            font-weight: 900;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 2;
+        }
+        .sel-card.selected .check-mark { opacity: 1; }
+
+        /* Issue limit hint */
+        .issue-hint {
+            text-align: center;
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            margin-bottom: 16px;
+        }
+        .issue-hint strong { color: #9D50BB; }
+
+        /* Buttons */
+        .btn-wrap { display: flex; justify-content: center; gap: 12px; margin-top: 8px; }
+        .btn {
+            padding: 14px 40px;
+            border-radius: 50px;
+            font-size: 0.95rem; font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s;
+            letter-spacing: 0.05em;
+        }
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(157,80,187,0.25);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(157,80,187,0.35);
+        }
+        .btn-primary:disabled {
+            opacity: 0.4; cursor: not-allowed; transform: none;
+            box-shadow: none;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-sub);
+            border: 2px solid #ddd;
+        }
+        .btn-secondary:hover { border-color: #aaa; color: var(--text-main); }
+
+        /* Follow-up (Step 4) */
+        .followup-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+            margin-bottom: 24px;
+        }
+        .followup-issue-tag {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 50px;
+            background: var(--accent-gradient);
+            color: #fff;
+            font-size: 0.75rem; font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+        }
+        .followup-question {
+            font-size: 1.05rem; font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .followup-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        @media (max-width: 480px) {
+            .followup-options { grid-template-columns: 1fr; }
+        }
+        .opt-btn {
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 0.88rem; font-weight: 700;
+            color: var(--text-sub);
+            transition: all 0.2s;
+            text-align: left;
+        }
+        .opt-btn:hover {
+            background: #fff;
+            border-color: #9D50BB;
+            color: var(--text-main);
+            transform: translateY(-1px);
+        }
+        .opt-btn.selected {
+            background: var(--accent-gradient);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        /* Results (Step 5) */
+        .result-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .result-header h2 {
+            font-size: 1.8rem; font-weight: 900; margin-bottom: 10px;
+        }
+        .result-header p { font-size: 0.9rem; color: var(--text-sub); }
+
+        .result-card {
+            background: rgba(255,255,255,0.97);
+            border-radius: 16px;
+            padding: 28px 32px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+            border-left: 5px solid #00C6FF;
+        }
+        .result-issue-label {
+            font-size: 0.78rem; font-weight: 700; color: #00C6FF;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 6px;
+        }
+        .result-issue-title {
+            font-size: 1.15rem; font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .result-followup-answer {
+            font-size: 0.82rem; color: #9D50BB; font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .result-solution-title {
+            font-size: 0.78rem; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .result-solution-name {
+            font-size: 1.05rem; font-weight: 900;
+            margin-bottom: 8px;
+        }
+        .result-solution-desc {
+            font-size: 0.88rem; color: #555; line-height: 1.7;
+            margin-bottom: 14px;
+        }
+        .result-projects {
+            display: flex; flex-wrap: wrap; gap: 6px;
+        }
+        .project-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            background: #f0f4ff;
+            font-size: 0.75rem; font-weight: 700; color: #555;
+            border: 1px solid #dde4ff;
+        }
+
+        .share-section {
+            text-align: center;
+            padding: 32px 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 16px;
+            margin-top: 32px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+        }
+        .share-section h3 {
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;
+        }
+        .share-section p {
+            font-size: 0.85rem; color: var(--text-sub); margin-bottom: 20px;
+        }
+        .share-url-box {
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.78rem; color: #888;
+            word-break: break-all;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+        .copy-feedback {
+            font-size: 0.8rem; color: #00C6FF; font-weight: 700;
+            height: 20px;
+            transition: opacity 0.3s;
+        }
+
+        .restart-wrap {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .main { padding: 140px 16px 60px; }
+            .step-heading h2 { font-size: 1.3rem; }
+            header { padding: 14px 20px; }
+            .result-card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="tech-canvas"></canvas>
+
+<header>
+    <div class="logo gradient-text" onclick="location.href='index.html'">ON TIME</div>
+    <a href="index.html" class="back-link">← TOP</a>
+</header>
+
+<div class="progress-wrap">
+    <div class="progress-inner">
+        <div class="progress-track">
+            <div class="progress-track-fill" id="progress-fill"></div>
+        </div>
+        <div class="step-dots" id="step-dots">
+            <div class="step-dot active" data-step="1"><span class="dot-circle">1</span><span class="dot-label">業種</span></div>
+            <div class="step-dot" data-step="2"><span class="dot-circle">2</span><span class="dot-label">部門</span></div>
+            <div class="step-dot" data-step="3"><span class="dot-circle">3</span><span class="dot-label">課題</span></div>
+            <div class="step-dot" data-step="4"><span class="dot-circle">4</span><span class="dot-label">詳細</span></div>
+            <div class="step-dot" data-step="5"><span class="dot-circle">5</span><span class="dot-label">結果</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="main">
+
+    <!-- Step 1: 業種 -->
+    <div id="step-1" class="step-panel active">
+        <div class="step-heading">
+            <h2 class="gradient-text">貴社の業種を教えてください</h2>
+            <p>最も近いものを1つ選択してください</p>
+        </div>
+        <div class="card-grid" id="industry-grid"></div>
+    </div>
+
+    <!-- Step 2: 部門 -->
+    <div id="step-2" class="step-panel">
+        <div class="step-heading">
+            <h2 class="gradient-text">あなたの部門・役割は？</h2>
+            <p>最も近いものを1つ選択してください</p>
+        </div>
+        <div class="card-grid" id="dept-grid"></div>
+    </div>
+
+    <!-- Step 3: 課題 -->
+    <div id="step-3" class="step-panel">
+        <div class="step-heading">
+            <h2 class="gradient-text">現在の課題を選んでください</h2>
+            <p>当てはまるものを最大3つまで選択できます</p>
+        </div>
+        <p class="issue-hint">選択中: <strong id="issue-count">0</strong> / 3</p>
+        <div class="card-grid" id="issue-grid"></div>
+        <div class="btn-wrap">
+            <button class="btn btn-secondary" onclick="goBack()">← 戻る</button>
+            <button class="btn btn-primary" id="btn-issue-next" onclick="goToStep4()" disabled>次へ →</button>
+        </div>
+    </div>
+
+    <!-- Step 4: 深掘り -->
+    <div id="step-4" class="step-panel">
+        <div class="step-heading">
+            <h2 class="gradient-text">もう少し詳しく教えてください</h2>
+            <p id="followup-progress-text"></p>
+        </div>
+        <div id="followup-container"></div>
+        <div class="btn-wrap" style="margin-top: 16px;">
+            <button class="btn btn-secondary" onclick="goBack()">← 戻る</button>
+        </div>
+    </div>
+
+    <!-- Step 5: 結果 -->
+    <div id="step-5" class="step-panel">
+        <div class="result-header">
+            <h2 class="gradient-text">診断結果</h2>
+            <p>貴社の課題に対する ON TIME のソリューションをご提案します</p>
+        </div>
+        <div id="result-cards"></div>
+
+        <div class="share-section">
+            <h3>診断結果をシェアする</h3>
+            <p>このURLをコピーして共有できます</p>
+            <div class="share-url-box" id="share-url-display"></div>
+            <button class="btn btn-primary" onclick="copyShareUrl()">URLをコピー</button>
+            <div class="copy-feedback" id="copy-feedback"></div>
+        </div>
+
+        <div class="restart-wrap">
+            <button class="btn btn-secondary" onclick="restart()">もう一度診断する</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// =====================
+// DATA
+// =====================
+
+const INDUSTRIES = [
+    '製造業', '小売・流通', '建設・不動産', '医療・介護',
+    '飲食・宿泊', '士業・コンサル', 'IT・ソフトウェア', '物流・運送',
+    '教育・研修', '美容・wellness', '金融・保険', 'その他'
+];
+
+const DEPARTMENTS = [
+    '経営・代表', '営業・販売', '経理・財務', '人事・総務',
+    '製造・現場', '物流・在庫', 'マーケティング', 'IT・情報システム'
+];
+
+const ISSUES = [
+    '手入力・手作業が多い\n（転記、Excel、PDF）',
+    '情報が散在している\n（メール・LINE・フォルダ乱立）',
+    '顧客への対応が遅い\n（見積・問い合わせ）',
+    'スケジュール・シフト管理が大変',
+    '請求・支払処理が\n月末に集中する',
+    '在庫・発注管理が\n感覚頼り',
+    '報告書・書類作成に\n時間がかかる',
+    '属人化が進んでいる',
+    'データを活かせていない',
+    'テレワーク・場所を選ばない\n働き方が難しい'
+];
+
+// 業種スコア [各課題の関連度]
+const INDUSTRY_SCORE = [
+    [3,2,1,2,2,3,3,3,2,1], // 製造業
+    [2,2,3,1,2,3,1,2,2,2], // 小売・流通
+    [2,2,2,2,2,2,3,2,1,2], // 建設・不動産
+    [3,2,2,3,2,2,3,3,2,2], // 医療・介護
+    [2,2,2,3,2,3,1,3,1,2], // 飲食・宿泊
+    [3,2,3,1,3,1,3,2,2,2], // 士業・コンサル
+    [2,2,2,1,2,1,2,2,3,3], // IT・ソフトウェア
+    [2,2,2,2,2,3,2,2,2,2], // 物流・運送
+    [2,2,2,2,2,1,2,2,2,3], // 教育・研修
+    [2,2,2,3,2,2,1,2,2,2], // 美容・wellness
+    [2,2,3,1,3,1,3,2,3,2], // 金融・保険
+    [2,2,2,2,2,2,2,2,2,2], // その他
+];
+
+// 部門スコア
+const DEPT_SCORE = [
+    [2,2,2,1,2,2,2,2,3,2], // 経営・代表
+    [2,2,3,1,2,2,2,2,2,2], // 営業・販売
+    [3,2,1,1,3,1,3,2,2,1], // 経理・財務
+    [2,2,1,3,2,1,2,2,1,2], // 人事・総務
+    [3,1,1,2,1,3,2,3,2,1], // 製造・現場
+    [2,2,2,1,2,3,2,2,2,1], // 物流・在庫
+    [1,2,3,1,1,1,2,1,3,2], // マーケティング
+    [2,2,2,1,2,2,2,2,3,3], // IT・情報システム
+];
+
+// 深掘り質問
+const FOLLOWUP = [
+    {
+        q: '最も時間を奪っている作業はどれですか？',
+        opts: ['データの転記・コピペ', 'PDF作成・印刷・スキャン', 'メールの送受信・管理', '承認・回覧フロー']
+    },
+    {
+        q: '情報が見つからない場面はいつですか？',
+        opts: ['顧客対応・商談中', '会議・報告作業時', '担当者引継ぎ時', '定期確認・振り返り時']
+    },
+    {
+        q: '対応が遅れる主な原因は何ですか？',
+        opts: ['承認者が捕まらない', '情報確認に時間がかかる', '担当者でないと分からない', 'フロー自体が未整備']
+    },
+    {
+        q: '管理で最も難しいと感じる点は？',
+        opts: ['希望・条件の収集が手間', 'バランス調整が複雑', '急な変更への対応', '周知・共有が大変']
+    },
+    {
+        q: '最も負担が大きい処理はどれですか？',
+        opts: ['請求書の作成', '入金確認・消込', '支払い手続き', '経費精算']
+    },
+    {
+        q: '在庫管理でよく起きる問題は？',
+        opts: ['欠品・機会損失', '過剰在庫・廃棄ロス', '発注漏れ', '複数拠点の把握困難']
+    },
+    {
+        q: '書類作成で時間がかかる理由は？',
+        opts: ['情報収集・整理が手間', 'フォーマットへの入力', '確認・承認待ち', '整合チェック・最終調整']
+    },
+    {
+        q: '属人化で最も困っていることは？',
+        opts: ['不在時に業務が止まる', '後任への引継ぎが難しい', '品質・スピードにばらつき', 'ノウハウが社内に残らない']
+    },
+    {
+        q: 'データ活用の最大の障壁は？',
+        opts: ['データが散在・未整備', '分析できる人材がいない', '活用方法が分からない', 'ツールが使いにくい']
+    },
+    {
+        q: 'テレワーク化の主な障壁は？',
+        opts: ['紙・印鑑・FAX文化', '社内システムへのアクセス', 'セキュリティへの不安', 'コミュニケーション方法']
+    }
+];
+
+// ソリューションマッピング
+const SOLUTIONS = [
+    {
+        name: 'Automated Workflow（業務自動化）',
+        desc: 'RPA・ローコードツールを活用し、反復的な手作業を自動化。入力ミスをゼロにし、処理速度を大幅に向上させます。',
+        projects: ['docflow（PDF書類→クラウド自動処理）', 'jc-agenda-bot（LINE Bot + Playwright 自動登録）']
+    },
+    {
+        name: 'Cloud Native + AI Optimization',
+        desc: '情報を一元管理するクラウド基盤を構築。AIが自動でタグ付け・分類し、必要な情報を即座に検索・取得できる環境を実現。',
+        projects: ['schoollunch（農家↔給食センター情報統合）', 'docflow（機密書類クラウド集約）']
+    },
+    {
+        name: 'Automated Workflow + Real-time Processing',
+        desc: '問い合わせ受付から担当者への通知・回答テンプレート自動生成まで一気通貫で自動化。レスポンスタイムを大幅に短縮します。',
+        projects: ['osk-material-order（複数現場発注の一元化）']
+    },
+    {
+        name: 'AI Optimization',
+        desc: 'スタッフの希望・スキル・繁忙データをAIが解析し、最適なシフトを自動生成。月次作業が数分に圧縮されます。',
+        projects: ['（汎用AI最適化ソリューション）']
+    },
+    {
+        name: 'Automated Workflow',
+        desc: '受注データから請求書を自動生成し、送付・入金確認・消込まで全自動化。月末の残業を解消します。',
+        projects: ['jc-agenda-bot（月次作業の自動化）', 'ai-subsidy-package（書類自動生成）']
+    },
+    {
+        name: 'Data Analytics + Real-time Processing',
+        desc: '在庫データをリアルタイムに可視化し、需要予測AIが発注タイミングを自動提案。欠品・過剰在庫を同時解消します。',
+        projects: ['schoollunch（農家↔給食センターリアルタイム連携）', 'osk-material-order（複数現場発注一元化）']
+    },
+    {
+        name: 'AI Optimization + Automated Workflow',
+        desc: 'AIが必要情報を自動収集・整理し、テンプレートへ自動入力。人間はレビューと最終判断に集中できます。',
+        projects: ['docflow（Azure AI + Cosmos DB）', 'ai-subsidy-package（補助金申請書自動生成）']
+    },
+    {
+        name: 'Cloud Native + AI Optimization',
+        desc: '業務プロセスをシステム化・可視化し、ノウハウをAIが学習。誰が担当しても一定の品質・スピードを実現します。',
+        projects: ['timer-kikuchi（工程時間をGoogleSheets自動記録）', 'docflow（書類処理の標準化）']
+    },
+    {
+        name: 'Data Analytics',
+        desc: '散在するデータを集約・統合し、ダッシュボードで可視化。経営判断をデータドリブンに変革します。',
+        projects: ['timer-kikuchi（製造工程データのリアルタイム計測・分析）', 'schoollunch（農産物需給データ分析）']
+    },
+    {
+        name: 'Cloud Native + Security First',
+        desc: 'ゼロトラストセキュリティを前提としたクラウド環境を構築。場所を選ばず、セキュアに業務遂行できる基盤を整備します。',
+        projects: ['schoollunch2/3（Lambda + Supabase サーバーレス構成）']
+    }
+];
+
+// =====================
+// STATE
+// =====================
+
+const state = {
+    currentStep: 1,
+    industry: null,
+    department: null,
+    selectedIssues: [],
+    followupAnswers: {},
+    currentFollowupIndex: 0,
+};
+
+// =====================
+// INIT
+// =====================
+
+function init() {
+    renderIndustries();
+    renderDepartments();
+    initCanvas();
+
+    // URLパラメータから復元
+    const params = new URLSearchParams(location.search);
+    const r = params.get('r');
+    if (r) {
+        try {
+            const data = JSON.parse(atob(r));
+            state.industry = data.i;
+            state.department = data.d;
+            state.selectedIssues = (data.q || '').split(',').map(Number).filter(n => !isNaN(n));
+            state.followupAnswers = data.f || {};
+            showStep(5);
+            renderResults();
+            return;
+        } catch(e) {
+            console.warn('URL復元失敗:', e);
+        }
+    }
+    showStep(1);
+}
+
+// =====================
+// RENDER STEP 1
+// =====================
+
+function renderIndustries() {
+    const grid = document.getElementById('industry-grid');
+    INDUSTRIES.forEach((name, i) => {
+        const card = makeCard(name, () => {
+            state.industry = i;
+            showStep(2);
+        });
+        grid.appendChild(card);
+    });
+}
+
+// =====================
+// RENDER STEP 2
+// =====================
+
+function renderDepartments() {
+    const grid = document.getElementById('dept-grid');
+    DEPARTMENTS.forEach((name, i) => {
+        const card = makeCard(name, () => {
+            state.department = i;
+            renderIssues();
+            showStep(3);
+        });
+        grid.appendChild(card);
+    });
+}
+
+// =====================
+// RENDER STEP 3
+// =====================
+
+function renderIssues() {
+    const grid = document.getElementById('issue-grid');
+    grid.innerHTML = '';
+
+    // スコアでソート（高いほど先頭）
+    const scored = ISSUES.map((txt, i) => {
+        const iScore = state.industry !== null ? INDUSTRY_SCORE[state.industry][i] : 1;
+        const dScore = state.department !== null ? DEPT_SCORE[state.department][i] : 1;
+        return { index: i, text: txt, score: iScore + dScore };
+    });
+    scored.sort((a, b) => b.score - a.score);
+
+    scored.forEach(({ index, text }) => {
+        const card = document.createElement('div');
+        card.className = 'sel-card';
+        card.dataset.index = index;
+        card.innerHTML = `<span>${text.replace(/\n/g, '<br>')}</span><span class="check-mark">✓</span>`;
+
+        if (state.selectedIssues.includes(index)) {
+            card.classList.add('selected');
+        }
+
+        card.addEventListener('click', () => toggleIssue(index, card));
+        grid.appendChild(card);
+    });
+
+    updateIssueCount();
+}
+
+function toggleIssue(index, card) {
+    const pos = state.selectedIssues.indexOf(index);
+    if (pos >= 0) {
+        state.selectedIssues.splice(pos, 1);
+        card.classList.remove('selected');
+    } else {
+        if (state.selectedIssues.length >= 3) return;
+        state.selectedIssues.push(index);
+        card.classList.add('selected');
+    }
+    updateIssueCount();
+}
+
+function updateIssueCount() {
+    document.getElementById('issue-count').textContent = state.selectedIssues.length;
+    document.getElementById('btn-issue-next').disabled = state.selectedIssues.length === 0;
+}
+
+// =====================
+// STEP 4: 深掘り
+// =====================
+
+function goToStep4() {
+    if (state.selectedIssues.length === 0) return;
+    state.currentFollowupIndex = 0;
+    state.followupAnswers = {};
+    showStep(4);
+    renderFollowup();
+}
+
+function renderFollowup() {
+    const idx = state.currentFollowupIndex;
+    const issueIdx = state.selectedIssues[idx];
+    const total = state.selectedIssues.length;
+    const fu = FOLLOWUP[issueIdx];
+    const issueLabel = ISSUES[issueIdx].replace(/\n/g, ' ');
+
+    document.getElementById('followup-progress-text').textContent =
+        `課題 ${idx + 1} / ${total}`;
+
+    const container = document.getElementById('followup-container');
+    container.innerHTML = '';
+
+    const card = document.createElement('div');
+    card.className = 'followup-card';
+    card.innerHTML = `
+        <span class="followup-issue-tag">課題 ${idx + 1}</span>
+        <div class="followup-question">「${issueLabel}」<br>${fu.q}</div>
+        <div class="followup-options" id="followup-opts"></div>
+    `;
+    container.appendChild(card);
+
+    const optsEl = document.getElementById('followup-opts');
+    fu.opts.forEach((opt, oi) => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.textContent = opt;
+        btn.addEventListener('click', () => {
+            state.followupAnswers[issueIdx] = opt;
+            nextFollowup();
+        });
+        optsEl.appendChild(btn);
+    });
+}
+
+function nextFollowup() {
+    state.currentFollowupIndex++;
+    if (state.currentFollowupIndex < state.selectedIssues.length) {
+        renderFollowup();
+    } else {
+        showStep(5);
+        renderResults();
+    }
+}
+
+// =====================
+// STEP 5: 結果
+// =====================
+
+function renderResults() {
+    const container = document.getElementById('result-cards');
+    container.innerHTML = '';
+
+    state.selectedIssues.forEach((issueIdx, rank) => {
+        const sol = SOLUTIONS[issueIdx];
+        const issueText = ISSUES[issueIdx].replace(/\n/g, ' ');
+        const answer = state.followupAnswers[issueIdx];
+
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.style.borderLeftColor = rank === 0 ? '#9D50BB' : rank === 1 ? '#00C6FF' : '#FF4B1F';
+        card.innerHTML = `
+            <div class="result-issue-label">課題 ${rank + 1}</div>
+            <div class="result-issue-title">${issueText}</div>
+            ${answer ? `<div class="result-followup-answer">▶ ${answer}</div>` : ''}
+            <div class="result-solution-title">推奨ソリューション</div>
+            <div class="result-solution-name gradient-text">${sol.name}</div>
+            <div class="result-solution-desc">${sol.desc}</div>
+            <div class="result-projects">
+                ${sol.projects.map(p => `<span class="project-tag">${p}</span>`).join('')}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    // URL生成
+    const encoded = btoa(JSON.stringify({
+        i: state.industry,
+        d: state.department,
+        q: state.selectedIssues.join(','),
+        f: state.followupAnswers
+    }));
+    const shareURL = `${location.origin}/shindan.html?r=${encoded}`;
+    document.getElementById('share-url-display').textContent = shareURL;
+    document.getElementById('share-url-display').dataset.url = shareURL;
+}
+
+function copyShareUrl() {
+    const url = document.getElementById('share-url-display').dataset.url;
+    navigator.clipboard.writeText(url).then(() => {
+        const fb = document.getElementById('copy-feedback');
+        fb.textContent = 'コピーしました！';
+        setTimeout(() => { fb.textContent = ''; }, 2500);
+    });
+}
+
+function restart() {
+    state.currentStep = 1;
+    state.industry = null;
+    state.department = null;
+    state.selectedIssues = [];
+    state.followupAnswers = {};
+    state.currentFollowupIndex = 0;
+    history.replaceState(null, '', location.pathname);
+    showStep(1);
+}
+
+// =====================
+// NAVIGATION
+// =====================
+
+function showStep(n) {
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`step-${n}`).classList.add('active');
+    state.currentStep = n;
+    updateProgress(n);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goBack() {
+    if (state.currentStep === 3) { showStep(2); return; }
+    if (state.currentStep === 4) { showStep(3); return; }
+    if (state.currentStep === 2) { showStep(1); return; }
+}
+
+function updateProgress(step) {
+    const dots = document.querySelectorAll('.step-dot');
+    dots.forEach(d => {
+        const s = parseInt(d.dataset.step);
+        d.classList.remove('active', 'done');
+        if (s === step) d.classList.add('active');
+        else if (s < step) d.classList.add('done');
+    });
+    const pct = ((step - 1) / 4) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+// =====================
+// HELPERS
+// =====================
+
+function makeCard(label, onClick) {
+    const card = document.createElement('div');
+    card.className = 'sel-card';
+    card.innerHTML = `<span>${label}</span>`;
+    card.addEventListener('click', onClick);
+    return card;
+}
+
+// =====================
+// CANVAS
+// =====================
+
+function initCanvas() {
+    const canvas = document.getElementById('tech-canvas');
+    const ctx = canvas.getContext('2d');
+    const colors = ['#00C6FF', '#9D50BB', '#FF4B1F', '#333333'];
+    let width, height, particles = [];
+
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 0.8;
+            this.vy = (Math.random() - 0.5) * 0.8;
+            this.size = Math.random() * 2.5 + 1;
+            this.color = colors[Math.floor(Math.random() * colors.length)];
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            if (this.x < 0) this.x = width;
+            if (this.x > width) this.x = 0;
+            if (this.y < 0) this.y = height;
+            if (this.y > height) this.y = 0;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.globalAlpha = 0.5;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    const count = width > 768 ? 60 : 30;
+    for (let i = 0; i < count; i++) particles.push(new Particle());
+
+    function drawLines() {
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < 120) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(120,120,120,${(1 - d/120) * 0.3})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        drawLines();
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+// =====================
+// START
+// =====================
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
