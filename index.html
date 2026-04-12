@@ -10,10 +10,10 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <!-- フォントを非同期読み込みに変更 -->
-        <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap" media="print" onload="this.media='all'">
+        <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&family=Zen+Antique&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&family=Zen+Antique&display=swap" media="print" onload="this.media='all'">
         <noscript>
-            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap">
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&family=Zen+Antique&display=swap">
         </noscript>
         
         <!-- ====== 最適化2: Critical CSS（Above the fold のみ） ====== -->
@@ -138,8 +138,8 @@
             }
             .hero-content h1 {
                 font-size: clamp(2.4rem, 5vw + 1rem, 5rem);
-                font-weight: 900; line-height: 1.1; margin-bottom: 20px;
-                letter-spacing: -0.02em;
+                font-weight: 400; line-height: 1.2; margin-bottom: 20px;
+                letter-spacing: 0.02em;
             }
             .hero-content h2 {
                 font-size: clamp(1.2rem, 2vw + 0.5rem, 2rem);
@@ -167,6 +167,7 @@
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
+                font-family: 'Zen Antique', serif;
             }
             .hero-title .char-line { display: inline-block; }
             @keyframes char-reveal {
