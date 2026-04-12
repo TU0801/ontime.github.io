@@ -26,150 +26,297 @@
                 --glass-bg: rgba(255, 255, 255, 0.85);
                 --modal-bg: rgba(255, 255, 255, 0.95);
             }
-            
+
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            
-            /* フォント読み込み前のフォールバック */
+
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                 background-color: var(--bg-color);
                 color: var(--text-main);
                 overflow-x: hidden;
                 width: 100%;
+                cursor: none;
             }
-            /* フォント読み込み完了後に適用 */
             .fonts-loaded body {
                 font-family: 'Montserrat', 'Noto Sans JP', sans-serif;
             }
-            
-            /* Canvas: 初期は非表示、遅延表示 */
+            html.touch-device body { cursor: auto; }
+
+            /* Scroll Progress */
+            .scroll-progress {
+                position: fixed; top: 0; left: 0; width: 0%; height: 3px;
+                background: var(--accent-gradient); z-index: 100;
+                animation: scroll-fill linear both;
+                animation-timeline: scroll();
+            }
+            @keyframes scroll-fill { from { width: 0%; } to { width: 100%; } }
+
+            /* Canvas */
             #tech-canvas {
-                position: fixed;
-                top: 0; left: 0; width: 100%; height: 100%;
-                z-index: -1; 
-                opacity: 0;
-                transition: opacity 0.5s ease;
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                z-index: -1; opacity: 0; transition: opacity 0.8s ease;
             }
             #tech-canvas.visible { opacity: 0.85; }
-            
+
+            /* Custom Cursor */
+            .custom-cursor {
+                position: fixed; width: 20px; height: 20px;
+                border: 1.5px solid #9D50BB; border-radius: 50%;
+                pointer-events: none; z-index: 9999;
+                transform: translate(-50%, -50%);
+                transition: width 0.2s, height 0.2s, border-color 0.2s, background 0.2s;
+                will-change: transform; mix-blend-mode: difference; opacity: 0;
+            }
+            .custom-cursor.visible { opacity: 1; }
+            .custom-cursor.hover {
+                width: 44px; height: 44px;
+                background: linear-gradient(135deg, rgba(0,198,255,0.3), rgba(157,80,187,0.3), rgba(255,75,31,0.3));
+                border-color: transparent;
+            }
+            .cursor-trail {
+                position: fixed; width: 8px; height: 8px;
+                background: rgba(157,80,187,0.3); border-radius: 50%;
+                pointer-events: none; z-index: 9998;
+                transform: translate(-50%, -50%); will-change: transform; opacity: 0;
+            }
+            .cursor-trail.visible { opacity: 1; }
+            html.touch-device .custom-cursor,
+            html.touch-device .cursor-trail { display: none; }
+
             .container {
-                max-width: 1000px;
+                max-width: 1140px;
                 margin: 0 auto;
-                padding: 0 20px;
+                padding: 0 24px;
                 position: relative;
                 z-index: 1;
             }
-            
+
             section { padding: 0; }
 
             .gradient-text-hero {
                 background: var(--accent-gradient);
+                background-size: 200% 100%;
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
             }
-            .gradient-text {
-                color: #1a1a1a;
-            }
+            .gradient-text { color: #1a1a1a; }
 
             h3 {
-                font-size: 0.8rem;
-                font-weight: 700;
-                letter-spacing: 0.25em;
-                text-transform: uppercase;
-                color: #999;
-                margin-bottom: 40px;
-                text-align: center;
+                font-size: 0.8rem; font-weight: 700;
+                letter-spacing: 0.25em; text-transform: uppercase;
+                color: #999; margin-bottom: 40px; text-align: center;
             }
-            
-            /* Header: backdrop-filter を遅延適用 */
+
+            /* Header */
             header {
                 position: fixed; top: 0; width: 100%; padding: 20px 40px;
                 display: flex; justify-content: space-between; align-items: center;
                 z-index: 10;
-                background: rgba(255, 255, 255, 0.9); /* 初期はソリッドに近い背景 */
+                background: rgba(255, 255, 255, 0.9);
                 border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                transition: background 0.6s, border-color 0.6s;
             }
             header.enhanced {
                 background: rgba(255, 255, 255, 0.7);
                 backdrop-filter: blur(10px);
             }
-            
+
             .logo {
                 font-weight: 900; font-size: 1.5rem; letter-spacing: 0.1em; cursor: pointer;
                 background: linear-gradient(135deg, #333, #9D50BB);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
+                -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                background-clip: text; opacity: 0;
+                animation: fade-up 0.5s ease forwards;
             }
-            
-            /* Hero - 最初に見える部分 */
+
+            /* Hero */
             .hero {
                 height: 100vh;
                 display: flex; align-items: center; justify-content: center;
                 text-align: center;
             }
-            
             .hero-content h1 {
-                font-size: 5rem; font-weight: 900; line-height: 1.1; margin-bottom: 20px;
+                font-size: clamp(2.4rem, 5vw + 1rem, 5rem);
+                font-weight: 900; line-height: 1.1; margin-bottom: 20px;
                 letter-spacing: -0.02em;
             }
-            .hero-content h2 { font-size: 2rem; font-weight: 700; margin-bottom: 40px; }
-            .hero-content p { font-size: 1rem; color: var(--text-sub); letter-spacing: 0.1em; text-transform: uppercase; }
-            
-            /* 初期表示用のフェードイン（アニメーションなしで即表示） */
-            .fade-in { opacity: 1; transform: none; }
-            .fade-in.animate { 
-                opacity: 0; 
-                transform: translateY(20px); 
-                transition: opacity 1s, transform 1s; 
+            .hero-content h2 {
+                font-size: clamp(1.2rem, 2vw + 0.5rem, 2rem);
+                font-weight: 700; margin-bottom: 40px;
             }
-            .fade-in.animate.visible { opacity: 1; transform: translateY(0); }
-            
-            @media (max-width: 768px) {
-                .hero-content h1 { font-size: 3rem; }
-                .hero-content h2 { font-size: 1.5rem; }
+            .hero-content .hero-eyebrow {
+                font-size: 1rem; color: var(--text-sub);
+                letter-spacing: 0.1em; text-transform: uppercase;
+                opacity: 0; animation: fade-up 0.6s ease 0.1s forwards;
             }
+
+            /* Staggered Character Reveal */
+            .hero-title {
+                -webkit-text-fill-color: unset;
+                background: none;
+            }
+            .hero-title .char {
+                display: inline-block; opacity: 0;
+                transform: translateY(40px) scale(0.9);
+                filter: blur(4px);
+                animation: char-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+                animation-delay: calc(0.3s + var(--i) * 0.07s);
+                background: var(--accent-gradient);
+                background-size: 200% 100%;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            .hero-title .char-line { display: inline-block; }
+            @keyframes char-reveal {
+                to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+            }
+
+            /* Subtitle Word Reveal */
+            .hero-subtitle .word {
+                display: inline-block; opacity: 0;
+                transform: translateY(12px);
+                animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+                animation-delay: calc(1.5s + var(--i) * 0.12s);
+                margin-right: 0.3em;
+            }
+
+            /* Gradient Shimmer on chars after reveal */
+            .hero-title .char {
+                animation: char-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+                           gradient-shimmer 4s ease-in-out 2.5s infinite;
+            }
+            @keyframes gradient-shimmer {
+                0%, 100% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+            }
+
+            /* Hero Parallax (CSS scroll-timeline) */
+            @supports (animation-timeline: scroll()) {
+                .hero-content {
+                    animation: hero-parallax linear both;
+                    animation-timeline: scroll();
+                    animation-range: 0vh 60vh;
+                }
+                @keyframes hero-parallax {
+                    from { transform: scale(1) translateY(0); opacity: 1; }
+                    to { transform: scale(0.88) translateY(-60px); opacity: 0; }
+                }
+            }
+
+            @keyframes fade-up {
+                from { opacity: 0; transform: translateY(15px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            /* CTA */
             .cta-btn {
-                display: inline-block;
-                margin-top: 32px;
-                padding: 18px 52px;
-                border-radius: 8px;
-                background: #1a1a1a;
-                color: #fff;
-                font-weight: 700;
-                font-size: 0.95rem;
-                letter-spacing: 0.06em;
-                text-decoration: none;
+                display: inline-block; margin-top: 32px;
+                padding: 18px 52px; border-radius: 8px;
+                background: #1a1a1a; color: #fff;
+                font-weight: 700; font-size: 0.95rem;
+                letter-spacing: 0.06em; text-decoration: none;
+                position: relative; overflow: hidden;
                 box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-                transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+                transition: transform 0.2s, box-shadow 0.2s;
+                --magnetic-x: 0px; --magnetic-y: 0px;
+                transform: translate(var(--magnetic-x), var(--magnetic-y));
+                opacity: 0;
+                animation: cta-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 2.2s forwards;
+            }
+            .cta-btn::before {
+                content: ''; position: absolute; inset: 0;
+                background: var(--accent-gradient); opacity: 0;
+                transition: opacity 0.3s; z-index: -1;
+            }
+            .cta-btn::after {
+                content: ''; position: absolute;
+                top: 0; left: -100%; width: 50%; height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+                z-index: 2; pointer-events: none;
+                animation: shimmer-sweep 4s ease-in-out 3s infinite;
             }
             .cta-btn:hover {
-                background: #333;
-                transform: translateY(-2px);
-                box-shadow: 0 8px 28px rgba(0,0,0,0.2);
+                transform: translate(var(--magnetic-x), var(--magnetic-y)) translateY(-2px);
+                box-shadow: 0 8px 28px rgba(157,80,187,0.3);
+                background: transparent;
+            }
+            .cta-btn:hover::before { opacity: 1; }
+            @keyframes cta-enter {
+                from { opacity: 0; transform: translate(var(--magnetic-x), var(--magnetic-y)) translateY(20px); }
+                to { opacity: 1; transform: translate(var(--magnetic-x), var(--magnetic-y)); }
+            }
+            @keyframes shimmer-sweep { 0%,70% { left: -100%; } 100% { left: 200%; } }
+            @keyframes cta-glow {
+                0%, 100% { box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+                50% { box-shadow: 0 4px 24px rgba(157,80,187,0.3), 0 0 40px rgba(0,198,255,0.1); }
+            }
+            .cta-btn.glowing { animation: cta-glow 3s ease-in-out infinite; }
+
+            /* Fade-in system */
+            .section-hidden { opacity: 0; transform: translateY(40px); }
+            .section-visible {
+                opacity: 1; transform: translateY(0);
+                transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+
+            /* Reduced Motion */
+            @media (prefers-reduced-motion: reduce) {
+                *, *::before, *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+                .custom-cursor, .cursor-trail, .scroll-progress { display: none !important; }
+                .hero-title .char, .hero-subtitle .word, .hero-eyebrow, .cta-btn, .logo {
+                    opacity: 1 !important; transform: none !important; filter: none !important;
+                }
+                .section-hidden { opacity: 1 !important; transform: none !important; }
+            }
+
+            @media (max-width: 768px) {
+                .hero-title .char {
+                    animation-duration: 0.5s;
+                    filter: none;
+                    animation-delay: calc(0.2s + var(--i) * 0.05s);
+                }
+            }
+            @media (max-width: 480px) {
+                header { padding: 16px 20px; }
             }
         </style>
     </head>
     <body>
-        
+
+        <div class="scroll-progress" aria-hidden="true"></div>
+        <div class="custom-cursor" id="custom-cursor"></div>
+        <div class="cursor-trail" id="cursor-trail"></div>
         <canvas id="tech-canvas"></canvas>
-        
+
         <header>
             <div class="logo" onclick="window.scrollTo({top:0, behavior:'smooth'})">ON TIME</div>
         </header>
-        
+
         <div class="container">
             <section class="hero">
-                <div class="hero-content fade-in">
-                    <p>Advanced Efficiency Solutions</p>
-                    <h1 class="gradient-text-hero">残業を<br>過去にする。</h1>
-                    <h2>Time is your asset.</h2>
+                <div class="hero-content">
+                    <p class="hero-eyebrow">Advanced Efficiency Solutions</p>
+                    <h1 class="gradient-text-hero hero-title" aria-label="残業を過去にする。">
+                        <span class="char-line"><span class="char" style="--i:0">残</span><span class="char" style="--i:1">業</span><span class="char" style="--i:2">を</span></span><br>
+                        <span class="char-line"><span class="char" style="--i:3">過</span><span class="char" style="--i:4">去</span><span class="char" style="--i:5">に</span><span class="char" style="--i:6">す</span><span class="char" style="--i:7">る</span><span class="char" style="--i:8">。</span></span>
+                    </h1>
+                    <h2 class="hero-subtitle">
+                        <span class="word" style="--i:0">Time</span>
+                        <span class="word" style="--i:1">is</span>
+                        <span class="word" style="--i:2">your</span>
+                        <span class="word" style="--i:3">asset.</span>
+                    </h2>
                     <a href="/check" class="cta-btn">課題を診断する →</a>
                 </div>
             </section>
-            
-            <section class="philosophy fade-in">
+
+            <section class="philosophy section-hidden">
                 <h3>PHILOSOPHY</h3>
                 <div class="philosophy-text">
                     <p class="philosophy-lead">
@@ -190,19 +337,133 @@
                 </div>
             </section>
             
-            <section class="tech-abstract fade-in">
-                <h3>CORE TECHNOLOGIES</h3>
-                <div class="tech-keywords">
-                    <div class="keyword" data-target="ai">AI Optimization</div>
-                    <div class="keyword" data-target="cloud">Cloud Native</div>
-                    <div class="keyword" data-target="workflow">Automated Workflow</div>
-                    <div class="keyword" data-target="data">Data Analytics</div>
-                    <div class="keyword" data-target="scale">Scalability</div>
-                    <div class="keyword" data-target="security">Security First</div>
-                    <div class="keyword" data-target="realtime">Real-time Processing</div>
-                </div>
-            </section>
         </div>
+
+        <section class="impact-numbers section-hidden">
+            <div class="container">
+                <h3>RESULTS</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="metric-number gradient-text-hero" data-target="2000" data-suffix="+">0</span>
+                        <span class="metric-unit">hours</span>
+                        <span class="metric-label">削減された作業時間</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-number gradient-text-hero" data-target="98" data-suffix="%">0</span>
+                        <span class="metric-unit">satisfaction</span>
+                        <span class="metric-label">クライアント満足度</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-number gradient-text-hero" data-target="7" data-suffix="">0</span>
+                        <span class="metric-unit">technologies</span>
+                        <span class="metric-label">コアテクノロジー</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-number gradient-text-hero" data-target="50" data-suffix="%">0</span>
+                        <span class="metric-unit">average</span>
+                        <span class="metric-label">平均効率改善率</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tech-showcase section-hidden">
+            <div class="container">
+                <h3>CORE TECHNOLOGIES</h3>
+                <div class="bento-grid">
+                    <div class="bento-card bento-wide" data-target="ai">
+                        <div class="bento-icon"><div class="geo-icon geo-ai"></div></div>
+                        <div class="bento-content">
+                            <h4 class="bento-title">AI Optimization</h4>
+                            <p class="bento-desc">AIが要件解析から書類生成まで一貫対応</p>
+                        </div>
+                        <span class="bento-arrow">&rarr;</span>
+                    </div>
+                    <div class="bento-card" data-target="cloud">
+                        <div class="bento-icon"><div class="geo-icon geo-cloud"></div></div>
+                        <div class="bento-content">
+                            <h4 class="bento-title">Cloud Native</h4>
+                            <p class="bento-desc">サーバーレスで高可用性を実現</p>
+                        </div>
+                        <span class="bento-arrow">&rarr;</span>
+                    </div>
+                    <div class="bento-card" data-target="workflow">
+                        <div class="bento-icon"><div class="geo-icon geo-workflow"></div></div>
+                        <div class="bento-content">
+                            <h4 class="bento-title">Automated Workflow</h4>
+                            <p class="bento-desc">手作業をBot + RPAで完全自動化</p>
+                        </div>
+                        <span class="bento-arrow">&rarr;</span>
+                    </div>
+                    <div class="bento-card" data-target="data">
+                        <div class="bento-icon"><div class="geo-icon geo-data"></div></div>
+                        <div class="bento-content">
+                            <h4 class="bento-title">Data Analytics</h4>
+                            <p class="bento-desc">リアルタイム計測でボトルネック特定</p>
+                        </div>
+                        <span class="bento-arrow">&rarr;</span>
+                    </div>
+                    <div class="bento-card bento-wide" data-target="scale">
+                        <div class="bento-icon"><div class="geo-icon geo-scale"></div></div>
+                        <div class="bento-content">
+                            <h4 class="bento-title">Scalability</h4>
+                            <p class="bento-desc">複数拠点からの同時アクセスに安定対応</p>
+                        </div>
+                        <span class="bento-arrow">&rarr;</span>
+                    </div>
+                    <div class="bento-card" data-target="security">
+                        <div class="bento-icon"><div class="geo-icon geo-security"></div></div>
+                        <div class="bento-content">
+                            <h4 class="bento-title">Security First</h4>
+                            <p class="bento-desc">機密書類をクラウドで安全に処理</p>
+                        </div>
+                        <span class="bento-arrow">&rarr;</span>
+                    </div>
+                    <div class="bento-card" data-target="realtime">
+                        <div class="bento-icon"><div class="geo-icon geo-realtime"></div></div>
+                        <div class="bento-content">
+                            <h4 class="bento-title">Real-time Processing</h4>
+                            <p class="bento-desc">双方向同期で情報のタイムラグ排除</p>
+                        </div>
+                        <span class="bento-arrow">&rarr;</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-studies section-hidden">
+            <div class="container">
+                <h3>CASE STUDIES</h3>
+                <div class="case-preview-grid">
+                    <div class="case-preview" data-target="ai" style="--accent: #9D50BB;">
+                        <span class="case-preview-label">AI Optimization</span>
+                        <h4 class="case-preview-title">補助金申請業務の自動化</h4>
+                        <p class="case-preview-result">申請準備のリードタイムを大幅短縮</p>
+                        <span class="case-preview-link">詳細を見る &rarr;</span>
+                    </div>
+                    <div class="case-preview" data-target="workflow" style="--accent: #00C6FF;">
+                        <span class="case-preview-label">Automated Workflow</span>
+                        <h4 class="case-preview-title">定例作業の完全自動化</h4>
+                        <p class="case-preview-result">月次数時間の手作業をほぼゼロに圧縮</p>
+                        <span class="case-preview-link">詳細を見る &rarr;</span>
+                    </div>
+                    <div class="case-preview" data-target="data" style="--accent: #FF4B1F;">
+                        <span class="case-preview-label">Data Analytics</span>
+                        <h4 class="case-preview-title">製造工程の作業時間データ化</h4>
+                        <p class="case-preview-result">ボトルネック工程を特定し残業原因を解消</p>
+                        <span class="case-preview-link">詳細を見る &rarr;</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="pre-footer-cta">
+            <div class="container">
+                <h2 class="cta-heading gradient-text-hero">次のステップへ</h2>
+                <p class="cta-sub">課題を診断して、最適なソリューションを見つけましょう。</p>
+                <a href="/check" class="cta-btn cta-btn-light">課題を診断する &rarr;</a>
+            </div>
+        </section>
         
         <div class="modal-overlay" id="modal-overlay">
             <div class="modal-content">
@@ -312,225 +573,463 @@
         
         
         <footer>
-            <div class="container fade-in">
-                <div class="footer-brand">ON TIME</div>
-                <div class="footer-tagline">時間を、味方に。</div>
-                <div class="notice">
-                    ※ 本サイトは、代表者が直接名刺交換をさせていただいた方へのご案内用です。<br>
-                    恐れ入りますが、直接のご面識のない方からのお問い合わせはご遠慮いただいております。
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-left">
+                        <div class="footer-brand">ON TIME</div>
+                        <div class="footer-tagline">時間を、味方に。</div>
+                        <div class="notice">
+                            ※ 本サイトは、代表者が直接名刺交換をさせていただいた方へのご案内用です。<br>
+                            恐れ入りますが、直接のご面識のない方からのお問い合わせはご遠慮いただいております。
+                        </div>
+                    </div>
+                    <div class="footer-right">
+                        <div class="footer-nav-group">
+                            <span class="footer-nav-label">Service</span>
+                            <a href="/check" class="footer-nav-link">課題診断</a>
+                        </div>
+                        <div class="footer-nav-group">
+                            <span class="footer-nav-label">Technology</span>
+                            <span class="footer-nav-link">AI Optimization</span>
+                            <span class="footer-nav-link">Cloud Native</span>
+                            <span class="footer-nav-link">Automation</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="copyright">
-                    &copy; 2025 ON TIME. All Rights Reserved.
+                <div class="footer-bottom">
+                    <div class="copyright">&copy; 2025 ON TIME. All Rights Reserved.</div>
                 </div>
             </div>
         </footer>
         
         <!-- ====== 最適化3: Non-Critical CSS を遅延読み込み ====== -->
         <style id="deferred-styles">
-            /* Philosophy Section */
-            .philosophy {
-                padding: 120px 0 80px;
-                text-align: left;
-            }
+            /* Philosophy */
+            .philosophy { padding: 120px 0 80px; text-align: left; }
             .philosophy-lead {
-                font-size: 1.6rem;
-                font-weight: 700;
-                line-height: 1.6;
-                margin-bottom: 32px;
-                color: var(--text-main);
+                font-size: clamp(1.3rem, 1.5vw + 0.5rem, 1.6rem);
+                font-weight: 700; line-height: 1.6; margin-bottom: 32px; color: var(--text-main);
             }
             .philosophy-body {
-                font-size: 1.05rem;
-                line-height: 2.2;
-                color: var(--text-sub);
-                margin-bottom: 40px;
-                max-width: 640px;
+                font-size: 1.05rem; line-height: 2.2; color: var(--text-sub);
+                margin-bottom: 40px; max-width: 640px;
             }
             .highlight {
-                font-weight: 700;
-                color: var(--text-main);
-                border-bottom: 2px solid #9D50BB;
+                font-weight: 700; color: var(--text-main); border-bottom: none;
+                background-image: linear-gradient(#9D50BB, #9D50BB);
+                background-size: 0% 2px; background-position: left bottom;
+                background-repeat: no-repeat; transition: background-size 0.8s ease;
+                padding-bottom: 2px;
             }
-            .philosophy-signature {
-                padding-top: 32px;
-                border-top: 1px solid #eee;
+            .highlight.animate-underline { background-size: 100% 2px; }
+            .philosophy-signature { padding-top: 32px; border-top: 1px solid #eee; }
+            .philosophy-brand { font-size: 1.3rem; font-weight: 900; letter-spacing: 0.05em; margin-bottom: 12px; color: var(--text-main); }
+            .philosophy-closer { font-size: 0.95rem; line-height: 2.2; color: var(--text-sub); }
+
+            /* Staggered children on reveal */
+            .section-visible .philosophy-lead { animation: content-slide 0.8s cubic-bezier(0.22,1,0.36,1) 0.2s both; }
+            .section-visible .philosophy-body { animation: content-slide 0.8s cubic-bezier(0.22,1,0.36,1) 0.4s both; }
+            .section-visible .philosophy-signature { animation: content-slide 0.8s cubic-bezier(0.22,1,0.36,1) 0.6s both; }
+            @keyframes content-slide { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+            /* Impact Numbers */
+            .impact-numbers { padding: 100px 0; background: #fff; }
+            .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; text-align: center; padding-top: 40px; }
+            .metric-card { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+            .metric-number { font-size: clamp(2.8rem, 5vw, 4rem); font-weight: 900; font-family: 'Montserrat', sans-serif; line-height: 1; }
+            .metric-unit { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; }
+            .metric-label { font-size: 0.85rem; color: var(--text-sub); font-weight: 500; margin-top: 4px; }
+
+            /* Bento Grid */
+            @property --border-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+            .tech-showcase { padding: 100px 0; background: #fafafa; }
+            .bento-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding-top: 40px; }
+            .bento-card {
+                background: #fff; border-radius: 16px; padding: 32px;
+                border: 1px solid #eee; cursor: pointer;
+                transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+                display: flex; flex-direction: column; gap: 16px;
+                position: relative; overflow: hidden;
+                --magnetic-x: 0px; --magnetic-y: 0px;
+                transform: translate(var(--magnetic-x), var(--magnetic-y));
             }
-            .philosophy-brand {
-                font-size: 1.3rem;
-                font-weight: 900;
-                letter-spacing: 0.05em;
-                margin-bottom: 12px;
-                color: var(--text-main);
+            .bento-card::after {
+                content: ''; position: absolute; inset: -2px; border-radius: 18px;
+                background: conic-gradient(from var(--border-angle), #00C6FF, #9D50BB, #FF4B1F, #00C6FF);
+                z-index: -1; opacity: 0; transition: opacity 0.3s;
             }
-            .philosophy-closer {
-                font-size: 0.95rem;
-                line-height: 2.2;
-                color: var(--text-sub);
+            .bento-card:hover::after { opacity: 1; animation: border-rotate 2s linear infinite; }
+            @keyframes border-rotate { to { --border-angle: 360deg; } }
+            .bento-card:hover {
+                transform: translate(var(--magnetic-x), var(--magnetic-y)) translateY(-4px);
+                box-shadow: 0 16px 40px rgba(0,0,0,0.08); border-color: transparent;
+            }
+            .bento-wide { grid-column: span 2; }
+            .bento-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; }
+            .bento-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.05rem; color: #1a1a1a; margin-bottom: 4px; }
+            .bento-desc { font-size: 0.85rem; color: var(--text-sub); line-height: 1.6; }
+            .bento-arrow {
+                position: absolute; top: 32px; right: 32px; font-size: 1.2rem; color: #ccc;
+                transition: color 0.2s, transform 0.2s;
+            }
+            .bento-card:hover .bento-arrow { color: #9D50BB; transform: translateX(4px); }
+
+            /* Staggered bento reveal */
+            .bento-card { opacity: 0; transform: translate(var(--magnetic-x,0),var(--magnetic-y,0)) translateY(20px); }
+            .bento-card.revealed {
+                opacity: 1; transform: translate(var(--magnetic-x,0),var(--magnetic-y,0)) translateY(0);
+                transition: opacity 0.5s ease, transform 0.5s ease;
+            }
+            .bento-card:nth-child(1) { transition-delay: 0ms; }
+            .bento-card:nth-child(2) { transition-delay: 80ms; }
+            .bento-card:nth-child(3) { transition-delay: 160ms; }
+            .bento-card:nth-child(4) { transition-delay: 240ms; }
+            .bento-card:nth-child(5) { transition-delay: 320ms; }
+            .bento-card:nth-child(6) { transition-delay: 400ms; }
+            .bento-card:nth-child(7) { transition-delay: 480ms; }
+
+            /* Geometric Icons */
+            .geo-icon { position: relative; width: 32px; height: 32px; }
+            .geo-ai { border: 2px solid #9D50BB; border-radius: 50%; animation: geo-pulse 3s ease-in-out infinite; }
+            .geo-ai::before { content:''; position:absolute; top:50%; left:50%; width:12px; height:12px; background:var(--accent-gradient); border-radius:50%; transform:translate(-50%,-50%); }
+            .geo-ai::after { content:''; position:absolute; top:-4px; left:50%; width:2px; height:8px; background:#00C6FF; transform:translateX(-50%); box-shadow: 0 36px 0 #00C6FF, -16px 6px 0 #00C6FF, 16px 6px 0 #00C6FF; }
+            .geo-cloud { border: 2px solid #00C6FF; border-radius: 8px; }
+            .geo-cloud::before { content:''; position:absolute; top:-6px; left:8px; width:16px; height:16px; border:2px solid #00C6FF; border-radius:50%; background:#fff; }
+            .geo-workflow { border: 2px solid #FF4B1F; border-radius: 50%; }
+            .geo-workflow::before { content:''; position:absolute; top:50%; left:50%; width:14px; height:14px; border:2px solid #FF4B1F; border-radius:2px; transform:translate(-50%,-50%) rotate(45deg); }
+            .geo-data { border-bottom: 2px solid #9D50BB; }
+            .geo-data::before { content:''; position:absolute; bottom:0; left:4px; width:6px; height:20px; background:#00C6FF; border-radius:2px 2px 0 0; box-shadow: 8px 6px 0 #9D50BB, 16px -2px 0 #FF4B1F; }
+            .geo-scale { border: 2px solid #00C6FF; border-radius: 4px; }
+            .geo-scale::before { content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:10px solid #00C6FF; transform:translate(-50%,-60%); }
+            .geo-security { width:28px; height:32px; border:2px solid #9D50BB; border-radius:50% 50% 4px 4px; }
+            .geo-security::before { content:''; position:absolute; top:40%; left:50%; width:8px; height:10px; border:2px solid #9D50BB; border-radius:50% 50% 0 0; transform:translateX(-50%); }
+            .geo-realtime { border:2px solid #FF4B1F; border-radius:50%; }
+            .geo-realtime::before { content:''; position:absolute; top:50%; left:50%; width:2px; height:10px; background:#FF4B1F; transform-origin:bottom center; transform:translate(-50%,-100%) rotate(-45deg); }
+            .geo-realtime::after { content:''; position:absolute; top:50%; left:50%; width:2px; height:7px; background:#FF4B1F; transform-origin:bottom center; transform:translate(-50%,-100%) rotate(90deg); }
+            @keyframes geo-pulse { 0%,100% { transform:scale(1); opacity:0.8; } 50% { transform:scale(1.08); opacity:1; } }
+
+            /* Case Study Previews */
+            .case-studies { padding: 100px 0; background: #fff; }
+            .case-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding-top: 40px; }
+            .case-preview {
+                padding: 32px; border-left: 4px solid var(--accent); background: #fafafa;
+                border-radius: 0 12px 12px 0; cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            .case-preview:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+            .case-preview-label {
+                font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 700;
+                letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent);
+                display: block; margin-bottom: 12px;
+            }
+            .case-preview-title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; line-height: 1.4; }
+            .case-preview-result { font-size: 0.85rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 16px; }
+            .case-preview-link {
+                font-size: 0.8rem; font-weight: 700; color: var(--accent);
+                font-family: 'Montserrat','Noto Sans JP',sans-serif; letter-spacing: 0.05em;
             }
 
-            /* Tech Keywords */
-            .tech-abstract {
-                padding: 80px 0 100px;
-                background: #fafafa;
-            }
-            .tech-keywords {
-                display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; padding: 50px 0;
-            }
+            /* Pre-footer CTA */
+            .pre-footer-cta { padding: 100px 0; background: #1a1a1a; text-align: center; }
+            .cta-heading { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 900; margin-bottom: 16px; }
+            .cta-sub { font-size: 1rem; color: rgba(255,255,255,0.5); margin-bottom: 40px; font-weight: 500; }
+            .cta-btn-light { background: #fff; color: #1a1a1a; opacity: 1; animation: none; }
+            .cta-btn-light:hover { background: #f0f0f0; color: #1a1a1a; }
+            .cta-btn-light::before { display: none; }
 
-            .keyword {
-                padding: 14px 28px;
-                border-radius: 8px;
-                background: #fff;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-                font-family: 'Montserrat', sans-serif;
-                font-weight: 700;
-                color: #444;
-                font-size: 0.85rem;
-                transition: all 0.2s ease;
-                cursor: pointer;
-                border: 1px solid #eee;
-            }
-            .keyword::before { display: none; }
-            .keyword:hover {
-                background: #1a1a1a;
-                color: #fff;
-                transform: translateY(-2px);
-                box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-                border-color: #1a1a1a;
-            }
-            
+            /* Dark Mode Theme */
+            body { transition: background-color 0.8s ease, color 0.6s ease; }
+            body.theme-dark { --bg-color: #0a0a0a; --text-main: #e8e8e8; --text-sub: #a0a0a0; background-color: #0a0a0a; color: #e8e8e8; }
+            body.theme-dark header { background: rgba(10,10,10,0.9); border-bottom-color: rgba(255,255,255,0.1); }
+            body.theme-dark header.enhanced { background: rgba(10,10,10,0.7); }
+            body.theme-dark .philosophy-signature { border-top-color: rgba(255,255,255,0.1); }
+            body.theme-dark .impact-numbers { background: #0a0a0a; }
+            body.theme-dark .tech-showcase { background: #111; }
+            body.theme-dark .bento-card { background: #1a1a1a; border-color: #333; }
+            body.theme-dark .bento-card:hover { border-color: transparent; }
+            body.theme-dark .bento-title { color: #e8e8e8; }
+            body.theme-dark .case-studies { background: #0a0a0a; }
+            body.theme-dark .case-preview { background: #111; }
+            body.theme-dark .modal-overlay { background: rgba(0,0,0,0.6); }
+            body.theme-dark .modal-content { background: #1a1a1a; border-color: rgba(255,255,255,0.1); color: #e8e8e8; }
+            body.theme-dark .modal-desc { color: #a0a0a0; }
+            body.theme-dark .case-study { background: #111; }
+            body.theme-dark .case-text { color: #a0a0a0; }
+
             /* Modal */
             .modal-overlay {
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(255, 255, 255, 0.6);
-                backdrop-filter: blur(15px);
-                z-index: 100;
-                display: flex; justify-content: center; align-items: center;
+                background: rgba(255,255,255,0.6); backdrop-filter: blur(15px);
+                z-index: 100; display: flex; justify-content: center; align-items: center;
                 opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
             }
             .modal-overlay.active { opacity: 1; pointer-events: auto; }
-            
             .modal-content {
-                background: #fff;
-                width: 90%; max-width: 800px; max-height: 90vh;
-                border-radius: 20px;
-                box-shadow: 0 25px 50px rgba(0,0,0,0.1);
-                padding: 50px;
-                position: relative;
-                overflow-y: auto;
+                background: #fff; width: 90%; max-width: 800px; max-height: 90vh;
+                border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+                padding: 50px; position: relative; overflow-y: auto;
                 transform: scale(0.9); transition: transform 0.4s ease;
                 border: 1px solid rgba(0,0,0,0.05);
             }
             .modal-overlay.active .modal-content { transform: scale(1); }
-            
-            .close-btn {
-                position: absolute; top: 20px; right: 20px;
-                font-size: 2rem; cursor: pointer; color: #999;
-                transition: color 0.3s;
-            }
+            .close-btn { position: absolute; top: 20px; right: 20px; font-size: 2rem; cursor: pointer; color: #999; transition: color 0.3s; }
             .close-btn:hover { color: #333; }
-            
             .modal-title { font-size: 2.5rem; margin-bottom: 20px; font-weight: 900; }
             .modal-desc { font-size: 1.1rem; color: #555; margin-bottom: 40px; line-height: 1.8; }
-            
-            .case-study {
-                background: #f8f9fa; border-left: 5px solid #00C6FF;
-                padding: 30px; border-radius: 0 10px 10px 0;
-            }
-            .case-label {
-                font-size: 0.8rem; font-weight: 700; color: #00C6FF;
-                text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block;
-            }
+            .case-study { background: #f8f9fa; border-left: 5px solid #00C6FF; padding: 30px; border-radius: 0 10px 10px 0; }
+            .case-label { font-size: 0.8rem; font-weight: 700; color: #00C6FF; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block; }
             .case-title { font-weight: 700; font-size: 1.2rem; margin-bottom: 10px; }
             .case-text { font-size: 0.95rem; color: #666; line-height: 1.6; }
-            
             .detail-source { display: none; }
-            
+
             /* Footer */
-            footer {
-                padding: 80px 0 40px;
-                text-align: center;
-                border-top: 1px solid #eee;
-                background: #fff;
-            }
-            .footer-brand {
-                font-weight: 900;
-                font-size: 1.2rem;
-                letter-spacing: 0.15em;
-                color: #ccc;
-                margin-bottom: 8px;
-            }
-            .footer-tagline {
-                font-size: 0.85rem;
-                color: #bbb;
-                margin-bottom: 40px;
-                font-weight: 500;
-            }
-            .notice {
-                font-size: 0.78rem;
-                color: #999;
-                margin-bottom: 24px;
-                padding: 20px 24px;
-                border: 1px solid #eee;
-                border-radius: 8px;
-                display: inline-block;
-                text-align: left;
-                line-height: 1.8;
-                max-width: 520px;
-            }
-            .copyright { font-size: 0.75rem; color: #ddd; }
-            
+            footer { padding: 60px 0 32px; background: #fafafa; position: relative; }
+            footer::before { content:''; position:absolute; top:0; left:50%; width:0; height:2px; background:var(--accent-gradient); transition: width 1s ease, left 1s ease; }
+            footer.border-visible::before { width: 100%; left: 0; }
+            .footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding-bottom: 40px; border-bottom: 1px solid #eee; }
+            .footer-left .footer-brand { font-weight: 900; font-size: 1.2rem; letter-spacing: 0.15em; color: #999; margin-bottom: 8px; text-align: left; }
+            .footer-left .footer-tagline { font-size: 0.85rem; color: #bbb; margin-bottom: 24px; font-weight: 500; text-align: left; }
+            .footer-left .notice { font-size: 0.75rem; color: #999; padding: 16px 20px; border: 1px solid #eee; border-radius: 8px; line-height: 1.8; text-align: left; max-width: 420px; }
+            .footer-right { display: flex; gap: 48px; justify-content: flex-end; }
+            .footer-nav-group { display: flex; flex-direction: column; gap: 8px; }
+            .footer-nav-label { font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #999; margin-bottom: 4px; }
+            .footer-nav-link { font-size: 0.8rem; color: #666; text-decoration: none; transition: color 0.2s; cursor: pointer; }
+            .footer-nav-link:hover { color: #333; }
+            .footer-bottom { padding-top: 24px; text-align: center; }
+            .footer-bottom .copyright { font-size: 0.72rem; color: #ccc; }
+
+            body.theme-dark footer { background: #0a0a0a; }
+            body.theme-dark .footer-grid { border-bottom-color: rgba(255,255,255,0.1); }
+            body.theme-dark .footer-left .notice { border-color: rgba(255,255,255,0.1); }
+            body.theme-dark .footer-nav-link { color: #888; }
+            body.theme-dark .footer-nav-link:hover { color: #ccc; }
+
+            /* Responsive */
             @media (max-width: 768px) {
                 .modal-content { padding: 30px; }
                 .modal-title { font-size: 1.8rem; }
-            }
-            @media (min-width: 769px) and (max-width: 1024px) {
-                .hero-content h1 { font-size: 4rem; }
-                .hero-content h2 { font-size: 1.6rem; }
-                .container { padding: 0 40px; }
+                .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 48px 24px; }
+                .bento-grid { grid-template-columns: repeat(2, 1fr); }
+                .bento-wide { grid-column: span 2; }
+                .case-preview-grid { grid-template-columns: 1fr; }
+                .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+                .footer-right { justify-content: flex-start; }
             }
             @media (max-width: 480px) {
-                .hero-content h1 { font-size: 2.4rem; }
-                .hero-content h2 { font-size: 1.2rem; }
-                header { padding: 16px 20px; }
                 .philosophy-lead { font-size: 1.3rem; }
-                .keyword { padding: 12px 20px; font-size: 0.8rem; }
+                .bento-grid { grid-template-columns: 1fr; }
+                .bento-wide { grid-column: span 1; }
+                .metrics-grid { grid-template-columns: 1fr 1fr; gap: 40px 16px; }
                 .cta-btn { padding: 14px 36px; font-size: 0.9rem; }
             }
         </style>
         
         <!-- ====== 最適化4: JavaScript を遅延実行 ====== -->
         <script>
-            // フォント読み込み検知
+            // ===== Global Flags =====
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            if (isTouchDevice) document.documentElement.classList.add('touch-device');
+
+            // ===== Font Loading =====
             if ('fonts' in document) {
                 Promise.all([
                     document.fonts.load('700 1em Montserrat'),
                     document.fonts.load('500 1em "Noto Sans JP"')
-                ]).then(() => {
-                    document.documentElement.classList.add('fonts-loaded');
-                });
+                ]).then(() => { document.documentElement.classList.add('fonts-loaded'); });
             }
-            
-            // 初期表示完了後に重い処理を実行
-            function initAfterPaint() {
-                // Header の backdrop-filter を有効化
-                document.querySelector('header').classList.add('enhanced');
-                
-                // fade-in アニメーションを有効化
-                document.querySelectorAll('.fade-in').forEach(el => {
-                    el.classList.add('animate');
+
+            // ===== Custom Cursor =====
+            function initCustomCursor() {
+                if (isTouchDevice || prefersReducedMotion) return;
+                const cursor = document.getElementById('custom-cursor');
+                const trail = document.getElementById('cursor-trail');
+                let cx = -100, cy = -100, tx = -100, ty = -100;
+                let trX = -100, trY = -100;
+                document.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
+                document.addEventListener('mouseenter', () => { cursor.classList.add('visible'); trail.classList.add('visible'); });
+                document.addEventListener('mouseleave', () => { cursor.classList.remove('visible'); trail.classList.remove('visible'); });
+                const hoverSel = '.cta-btn, .bento-card, .logo, .close-btn, a, .case-preview';
+                document.addEventListener('mouseover', e => { if (e.target.closest(hoverSel)) cursor.classList.add('hover'); });
+                document.addEventListener('mouseout', e => { if (e.target.closest(hoverSel)) cursor.classList.remove('hover'); });
+                function lerp(a, b, f) { return a + (b - a) * f; }
+                function tick() {
+                    cx = lerp(cx, tx, 0.25); cy = lerp(cy, ty, 0.25);
+                    cursor.style.transform = `translate(${cx}px,${cy}px) translate(-50%,-50%)`;
+                    trX = lerp(trX, cx, 0.15); trY = lerp(trY, cy, 0.15);
+                    trail.style.transform = `translate(${trX}px,${trY}px) translate(-50%,-50%)`;
+                    requestAnimationFrame(tick);
+                }
+                requestAnimationFrame(tick);
+            }
+
+            // ===== Magnetic Elements =====
+            function initMagneticElements() {
+                if (isTouchDevice || prefersReducedMotion) return;
+                const config = [
+                    { selector: '.cta-btn:not(.cta-btn-light)', threshold: 80, max: 8 },
+                    { selector: '.bento-card', threshold: 60, max: 5 }
+                ];
+                const items = [];
+                config.forEach(({ selector, threshold, max }) => {
+                    document.querySelectorAll(selector).forEach(el => {
+                        items.push({ el, threshold, max, cx: 0, cy: 0 });
+                    });
                 });
-                
-                // IntersectionObserver でフェードインを監視
-                const observer = new IntersectionObserver((entries) => {
+                let mx = 0, my = 0;
+                document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+                function tick() {
+                    for (const it of items) {
+                        const r = it.el.getBoundingClientRect();
+                        const dx = mx - (r.left + r.width / 2), dy = my - (r.top + r.height / 2);
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        let tgtX = 0, tgtY = 0;
+                        if (dist < it.threshold) {
+                            const s = (1 - dist / it.threshold);
+                            tgtX = dx * s * (it.max / it.threshold);
+                            tgtY = dy * s * (it.max / it.threshold);
+                        }
+                        it.cx += (tgtX - it.cx) * 0.15;
+                        it.cy += (tgtY - it.cy) * 0.15;
+                        it.el.style.setProperty('--magnetic-x', it.cx + 'px');
+                        it.el.style.setProperty('--magnetic-y', it.cy + 'px');
+                    }
+                    requestAnimationFrame(tick);
+                }
+                requestAnimationFrame(tick);
+            }
+
+            // ===== Counter Animation =====
+            function initCounters() {
+                const counters = document.querySelectorAll('.metric-number[data-target]');
+                const obs = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
-                            entry.target.classList.add('visible');
+                            animateCounter(entry.target);
+                            obs.unobserve(entry.target);
                         }
                     });
-                }, { threshold: 0.1 });
-                
-                document.querySelectorAll('.fade-in.animate').forEach(el => observer.observe(el));
+                }, { threshold: 0.5 });
+                counters.forEach(el => obs.observe(el));
+            }
+            function animateCounter(el) {
+                const target = parseInt(el.dataset.target);
+                const suffix = el.dataset.suffix || '';
+                const duration = 2000;
+                const start = performance.now();
+                function update(now) {
+                    const p = Math.min((now - start) / duration, 1);
+                    const eased = 1 - Math.pow(1 - p, 3);
+                    el.textContent = Math.round(eased * target).toLocaleString() + suffix;
+                    if (p < 1) requestAnimationFrame(update);
+                }
+                requestAnimationFrame(update);
+            }
+
+            // ===== Section Reveals & Dark Mode =====
+            function initSectionObservers() {
+                // Section reveal
+                const revealObs = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.remove('section-hidden');
+                            entry.target.classList.add('section-visible');
+                            // Bento card stagger
+                            entry.target.querySelectorAll('.bento-card').forEach(c => c.classList.add('revealed'));
+                            // Highlight animation
+                            entry.target.querySelectorAll('.highlight').forEach((hl, i) => {
+                                setTimeout(() => hl.classList.add('animate-underline'), 400 + i * 200);
+                            });
+                            revealObs.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+                document.querySelectorAll('.section-hidden').forEach(el => revealObs.observe(el));
+
+                // Dark mode shift
+                const phil = document.querySelector('.philosophy');
+                if (phil) {
+                    const darkObs = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+                                document.body.classList.add('theme-dark');
+                            } else if (!entry.isIntersecting) {
+                                document.body.classList.remove('theme-dark');
+                            }
+                        });
+                    }, { threshold: [0, 0.3, 0.7, 1] });
+                    darkObs.observe(phil);
+                }
+
+                // Footer border
+                const footer = document.querySelector('footer');
+                if (footer) {
+                    const footerObs = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) { entry.target.classList.add('border-visible'); footerObs.unobserve(entry.target); }
+                        });
+                    }, { threshold: 0.1 });
+                    footerObs.observe(footer);
+                }
+            }
+
+            // ===== Hero Parallax JS Fallback =====
+            function initHeroParallaxFallback() {
+                if (CSS.supports && CSS.supports('animation-timeline', 'scroll()')) return;
+                const hc = document.querySelector('.hero-content');
+                if (!hc) return;
+                let ticking = false;
+                window.addEventListener('scroll', () => {
+                    if (!ticking) {
+                        requestAnimationFrame(() => {
+                            const sy = window.scrollY;
+                            const end = window.innerHeight * 0.6;
+                            if (sy <= end) {
+                                const p = sy / end;
+                                hc.style.transform = `scale(${1 - p * 0.12}) translateY(${-p * 60}px)`;
+                                hc.style.opacity = 1 - p;
+                            } else { hc.style.opacity = 0; }
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                }, { passive: true });
+            }
+
+            // ===== Scroll Progress Fallback =====
+            function initScrollProgressFallback() {
+                if (CSS.supports && CSS.supports('animation-timeline', 'scroll()')) return;
+                const bar = document.querySelector('.scroll-progress');
+                if (!bar) return;
+                bar.style.animation = 'none';
+                let ticking = false;
+                window.addEventListener('scroll', () => {
+                    if (!ticking) {
+                        requestAnimationFrame(() => {
+                            const dh = document.documentElement.scrollHeight - window.innerHeight;
+                            bar.style.width = dh > 0 ? (window.scrollY / dh * 100) + '%' : '0%';
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                }, { passive: true });
+            }
+
+            // ===== CTA Glow after load =====
+            function initCTAGlow() {
+                setTimeout(() => {
+                    const cta = document.querySelector('.hero .cta-btn');
+                    if (cta) cta.classList.add('glowing');
+                }, 3000);
+            }
+
+            // ===== initAfterPaint =====
+            function initAfterPaint() {
+                document.querySelector('header').classList.add('enhanced');
+                initSectionObservers();
+                initHeroParallaxFallback();
+                initScrollProgressFallback();
+                initCTAGlow();
             }
             
             // Canvas アニメーションを遅延初期化
@@ -544,6 +1043,9 @@
                 let width, height, time = 0;
                 const isMobile = window.innerWidth <= 768;
                 let mouseX = -9999, mouseY = -9999, mouseActive = false;
+                let isDarkMode = false;
+                const darkObs = new MutationObserver(() => { isDarkMode = document.body.classList.contains('theme-dark'); });
+                darkObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
                 canvas.style.pointerEvents = 'none';
                 window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; mouseActive = true; });
@@ -639,6 +1141,7 @@
                     const step = isMobile ? 60 : 40;
                     const noiseScale = 0.003;
                     const distort = 15;
+                    const darkMul = isDarkMode ? 2.5 : 1;
                     ctx.lineWidth = 0.5;
                     // 横線
                     for (let y = 0; y < height + step; y += step) {
@@ -647,7 +1150,7 @@
                             const n = simplex2(x * noiseScale + t * 0.0003, y * noiseScale + t * 0.0002);
                             const dy = n * distort;
                             const dx = simplex2(x * noiseScale + 100, y * noiseScale + t * 0.0003) * distort * 0.5;
-                            let alpha = 0.07;
+                            let alpha = 0.07 * darkMul;
                             if (mouseActive) {
                                 const mdx = x - mouseX, mdy = y + dy - mouseY;
                                 const md = Math.sqrt(mdx * mdx + mdy * mdy);
@@ -665,7 +1168,7 @@
                             const n = simplex2(x * noiseScale + t * 0.0002, y * noiseScale + t * 0.0003 + 50);
                             const dx = n * distort;
                             const dy = simplex2(x * noiseScale + t * 0.0003 + 50, y * noiseScale + 100) * distort * 0.5;
-                            let alpha = 0.07;
+                            let alpha = 0.07 * darkMul;
                             if (mouseActive) {
                                 const mdx = x + dx - mouseX, mdy = y - mouseY;
                                 const md = Math.sqrt(mdx * mdx + mdy * mdy);
@@ -750,7 +1253,7 @@
 
                 function drawFlowTrails(t) {
                     // トレイルCanvasをフェード
-                    tCtx.fillStyle = 'rgba(255,255,255,0.03)';
+                    tCtx.fillStyle = isDarkMode ? 'rgba(10,10,10,0.03)' : 'rgba(255,255,255,0.03)';
                     tCtx.fillRect(0, 0, width, height);
                     for (const p of flowParticles) {
                         p.update(t);
@@ -972,52 +1475,52 @@
                 animate();
             }
             
-            // Modal Logic
+            // ===== Modal Logic =====
             function initModal() {
                 const modalOverlay = document.getElementById('modal-overlay');
                 const modalBody = document.getElementById('modal-body');
                 const closeBtn = document.getElementById('modal-close');
-                const keywords = document.querySelectorAll('.keyword');
-                
-                keywords.forEach(keyword => {
-                    keyword.addEventListener('click', () => {
-                        const targetId = 'content-' + keyword.getAttribute('data-target');
-                        const content = document.getElementById(targetId).innerHTML;
-                        
-                        modalBody.innerHTML = content;
-                        modalOverlay.classList.add('active');
-                        document.body.style.overflow = 'hidden';
-                    });
-                });
-                
+
+                function openModal(targetId) {
+                    const src = document.getElementById(targetId);
+                    if (!src) return;
+                    modalBody.innerHTML = src.innerHTML;
+                    modalOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
                 function closeModal() {
                     modalOverlay.classList.remove('active');
                     document.body.style.overflow = '';
                 }
-                
-                closeBtn.addEventListener('click', closeModal);
-                
-                modalOverlay.addEventListener('click', (e) => {
-                    if (e.target === modalOverlay) closeModal();
+
+                // Bento cards
+                document.querySelectorAll('.bento-card[data-target]').forEach(card => {
+                    card.addEventListener('click', () => openModal('content-' + card.dataset.target));
                 });
+                // Case study previews
+                document.querySelectorAll('.case-preview[data-target]').forEach(card => {
+                    card.addEventListener('click', () => openModal('content-' + card.dataset.target));
+                });
+
+                closeBtn.addEventListener('click', closeModal);
+                modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
             }
-            
-            // ====== 実行タイミングの最適化 ======
-            // 1. DOMContentLoaded 直後: 軽い処理
+
+            // ===== Execution =====
             document.addEventListener('DOMContentLoaded', () => {
                 initModal();
+                initCustomCursor();
+                initMagneticElements();
+                initCounters();
             });
-            
-            // 2. 初期描画完了後: UI拡張
+
             if ('requestIdleCallback' in window) {
                 requestIdleCallback(initAfterPaint, { timeout: 100 });
             } else {
                 setTimeout(initAfterPaint, 50);
             }
-            
-            // 3. ページ読み込み完了後: Canvas アニメーション
+
             window.addEventListener('load', () => {
-                // 少し遅延させてからCanvas開始
                 setTimeout(initCanvas, 200);
             });
         </script>
