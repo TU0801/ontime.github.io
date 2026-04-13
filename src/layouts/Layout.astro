@@ -1,7 +1,8 @@
 ---
 // 全ページ共通 Layout
 // 元: index.html の <head>（L1-291）+ <style id="deferred-styles">（L625-845）
-// Phase 0-4 で抽出。CSS はまず全部 is:global で統合、後続フェーズで分離予定。
+// Phase 0-4 で抽出、Phase 0-7 で ClientRouter 追加。
+import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title?: string;
@@ -16,6 +17,8 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+
+    <ClientRouter />
 
     <!-- フォント読み込み（Phase 0-5 で @fontsource に移行予定） -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -530,9 +533,5 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
   </head>
   <body>
     <slot />
-
-    <script>
-      import '../scripts/main';
-    </script>
   </body>
 </html>
