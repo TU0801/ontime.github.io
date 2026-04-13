@@ -111,9 +111,9 @@ import Layout from '../layouts/Layout.astro';
     }
     .step-dot.active .dot-label { color: var(--text-main); }
     .step-dot.done .dot-circle {
-      background: #00C6FF;
+      background: #1E3A5F;
       border-color: transparent;
-      color: #fff;
+      color: #F4F3EE;
     }
     .step-dot.done .dot-label { color: var(--text-sub); }
 
@@ -185,7 +185,7 @@ import Layout from '../layouts/Layout.astro';
     .sel-card span { position: relative; z-index: 1; }
     .sel-card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(157,80,187,0.15);
+      box-shadow: 0 8px 24px rgba(30,58,95,0.14);
       border-color: transparent;
       color: #fff;
     }
@@ -195,7 +195,7 @@ import Layout from '../layouts/Layout.astro';
       border-color: transparent;
       color: #fff;
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(157,80,187,0.2);
+      box-shadow: 0 8px 24px rgba(30,58,95,0.2);
     }
     .sel-card.selected::before { opacity: 1; }
 
@@ -207,7 +207,7 @@ import Layout from '../layouts/Layout.astro';
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: 0.65rem;
-      color: #9D50BB;
+      color: #1E3A5F;
       font-weight: 900;
       opacity: 0;
       transition: opacity 0.2s;
@@ -222,7 +222,7 @@ import Layout from '../layouts/Layout.astro';
       color: var(--text-sub);
       margin-bottom: 16px;
     }
-    .issue-hint strong { color: #9D50BB; }
+    .issue-hint strong { color: #1E3A5F; }
 
     /* Buttons (check ページ専用) */
     .btn-wrap { display: flex; justify-content: center; gap: 12px; margin-top: 8px; }
@@ -238,11 +238,11 @@ import Layout from '../layouts/Layout.astro';
     .btn-primary {
       background: var(--accent-gradient);
       color: #fff;
-      box-shadow: 0 8px 24px rgba(157,80,187,0.25);
+      box-shadow: 0 8px 24px rgba(30,58,95,0.28);
     }
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(157,80,187,0.35);
+      box-shadow: 0 12px 32px rgba(30,58,95,0.38);
     }
     .btn-primary:disabled {
       opacity: 0.4; cursor: not-allowed; transform: none;
@@ -299,7 +299,7 @@ import Layout from '../layouts/Layout.astro';
     }
     .opt-btn:hover {
       background: #fff;
-      border-color: #9D50BB;
+      border-color: #1E3A5F;
       color: var(--text-main);
       transform: translateY(-1px);
     }
@@ -325,10 +325,10 @@ import Layout from '../layouts/Layout.astro';
       padding: 28px 32px;
       margin-bottom: 20px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.07);
-      border-left: 5px solid #00C6FF;
+      border-left: 5px solid #1E3A5F;
     }
     .result-issue-label {
-      font-size: 0.78rem; font-weight: 700; color: #00C6FF;
+      font-size: 0.78rem; font-weight: 700; color: #1E3A5F;
       text-transform: uppercase; letter-spacing: 0.1em;
       margin-bottom: 6px;
     }
@@ -337,7 +337,7 @@ import Layout from '../layouts/Layout.astro';
       margin-bottom: 6px;
     }
     .result-followup-answer {
-      font-size: 0.82rem; color: #9D50BB; font-weight: 700;
+      font-size: 0.82rem; color: #1E3A5F; font-weight: 700;
       margin-bottom: 16px;
     }
     .result-solution-title {
@@ -392,7 +392,7 @@ import Layout from '../layouts/Layout.astro';
       text-align: left;
     }
     .copy-feedback {
-      font-size: 0.8rem; color: #00C6FF; font-weight: 700;
+      font-size: 0.8rem; color: #1E3A5F; font-weight: 700;
       height: 20px;
       transition: opacity 0.3s;
     }

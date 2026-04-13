@@ -79,8 +79,9 @@ function bootCanvas(): void {
   // 別 canvas で GPU パーティクルを起動（OGL の uniform 衝突回避）
   const particlesCanvas = document.getElementById('particles-canvas');
   if (particlesCanvas instanceof HTMLCanvasElement) {
-    const particleCount = tier === 'high' ? 50000 : tier === 'medium' ? 20000 : 5000;
-    particleHandle = initParticleField(particlesCanvas, particleCount, 2);
+    const particleCount = tier === 'high' ? 5000 : tier === 'medium' ? 2500 : 1000;
+    const pointSize = tier === 'high' ? 7 : tier === 'medium' ? 8 : 9;
+    particleHandle = initParticleField(particlesCanvas, particleCount, pointSize);
   }
 
   // FPS 監視（低 FPS が 3 秒連続したら警告）
