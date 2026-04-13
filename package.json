@@ -1,0 +1,40 @@
+{
+  "name": "onclik",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "prepare": "husky",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "check": "astro check && biome check .",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "lint-staged": {
+    "*.{ts,js,mjs,cjs,json}": "biome check --write --no-errors-on-unmatched"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "^10.0.4",
+    "@fontsource-variable/montserrat": "^5.2.8",
+    "@fontsource-variable/noto-sans-jp": "^5.2.10",
+    "@fontsource/zen-antique": "^5.2.8",
+    "astro": "^6.1.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "@biomejs/biome": "^2.4.11",
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "typescript": "^5.9.3"
+  }
+}
