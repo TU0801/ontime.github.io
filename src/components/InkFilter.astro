@@ -1,0 +1,29 @@
+---
+// SVG ink filter（hero 筆文字に適用される turbulence + displacement チェーン）
+// Phase 1-A で抽出（旧 Phase 0-6）
+// Phase 1 後半で displacement shader への置換を予定
+---
+
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <defs>
+    <filter id="ink-filter" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="4" seed="2" result="noise" />
+      <feDisplacementMap
+        in="SourceGraphic"
+        in2="noise"
+        scale="3"
+        xChannelSelector="R"
+        yChannelSelector="G"
+        result="displaced"
+      />
+      <feMorphology in="displaced" operator="dilate" radius="0.3" result="thickened" />
+      <feGaussianBlur in="thickened" stdDeviation="0.4" result="blurred" />
+      <feComponentTransfer in="blurred" result="sharpened">
+        <feFuncA type="discrete" tableValues="0 1" />
+      </feComponentTransfer>
+      <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="3" seed="7" result="edgeNoise" />
+      <feDisplacementMap in="sharpened" in2="edgeNoise" scale="1.5" result="roughEdge" />
+      <feComposite in="SourceGraphic" in2="roughEdge" operator="in" />
+    </filter>
+  </defs>
+</svg>
