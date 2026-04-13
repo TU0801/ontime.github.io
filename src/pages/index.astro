@@ -31,6 +31,15 @@ import Philosophy from '../components/Philosophy.astro';
 
   <header>
     <div class="logo" onclick="window.scrollTo({top:0, behavior:'smooth'})">ON TIME</div>
+    <button
+      id="ambient-toggle"
+      class="ambient-btn"
+      type="button"
+      aria-label="環境音を再生"
+      aria-pressed="false"
+    >
+      <span class="speaker-icon">🔇</span>
+    </button>
   </header>
 
   <div class="container">
