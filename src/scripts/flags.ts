@@ -9,11 +9,8 @@ export function applyTouchDeviceFlag(): void {
 }
 
 export function initFontLoading(): void {
-  if (!('fonts' in document)) return;
-  Promise.all([
-    document.fonts.load('700 1em Montserrat'),
-    document.fonts.load('500 1em "Noto Sans JP"'),
-  ]).then(() => {
+  // @fontsource 経由でバンドル済み。document.fonts.ready で全フォントロード完了を待つ
+  document.fonts.ready.then(() => {
     document.documentElement.classList.add('fonts-loaded');
   });
 }

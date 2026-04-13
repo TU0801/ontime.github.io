@@ -1,8 +1,11 @@
 ---
 // 全ページ共通 Layout
 // 元: index.html の <head>（L1-291）+ <style id="deferred-styles">（L625-845）
-// Phase 0-4 で抽出、Phase 0-7 で ClientRouter 追加。
+// Phase 0-4 で抽出、Phase 0-7 で ClientRouter 追加、Phase 0-5 で @fontsource 化。
 import { ClientRouter } from 'astro:transitions';
+import '@fontsource-variable/montserrat';
+import '@fontsource-variable/noto-sans-jp';
+import '@fontsource/zen-antique';
 
 interface Props {
   title?: string;
@@ -20,26 +23,7 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
 
     <ClientRouter />
 
-    <!-- フォント読み込み（Phase 0-5 で @fontsource に移行予定） -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&family=Zen+Antique&display=swap"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&family=Zen+Antique&display=swap"
-      media="print"
-      onload="this.media='all'"
-    />
-    <noscript>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+JP:wght@300;500;700&family=Zen+Antique&display=swap"
-      />
-    </noscript>
+    <!-- フォントは @fontsource / @fontsource-variable 経由でバンドル（frontmatter で import） -->
 
     <style is:global>
       /* ===== Critical CSS（Above the fold） ===== */
@@ -63,7 +47,7 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
         cursor: none;
       }
       .fonts-loaded body {
-        font-family: 'Montserrat', 'Noto Sans JP', sans-serif;
+        font-family: 'Montserrat Variable', 'Noto Sans JP Variable', sans-serif;
       }
       html.touch-device body { cursor: auto; }
 
@@ -344,7 +328,7 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
       .impact-numbers { padding: 100px 0; background: #fff; }
       .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; text-align: center; padding-top: 40px; }
       .metric-card { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-      .metric-number { font-size: clamp(2.8rem, 5vw, 4rem); font-weight: 900; font-family: 'Montserrat', sans-serif; line-height: 1; }
+      .metric-number { font-size: clamp(2.8rem, 5vw, 4rem); font-weight: 900; font-family: 'Montserrat Variable', sans-serif; line-height: 1; }
       .metric-unit { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; }
       .metric-label { font-size: 0.85rem; color: var(--text-sub); font-weight: 500; margin-top: 4px; }
 
@@ -374,7 +358,7 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
       }
       .bento-wide { grid-column: span 2; }
       .bento-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; }
-      .bento-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.05rem; color: #1a1a1a; margin-bottom: 4px; }
+      .bento-title { font-family: 'Montserrat Variable', sans-serif; font-weight: 700; font-size: 1.05rem; color: #1a1a1a; margin-bottom: 4px; }
       .bento-desc { font-size: 0.85rem; color: var(--text-sub); line-height: 1.6; }
       .bento-arrow {
         position: absolute; top: 32px; right: 32px; font-size: 1.2rem; color: #ccc;
@@ -425,7 +409,7 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
       }
       .case-preview:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
       .case-preview-label {
-        font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 700;
+        font-family: 'Montserrat Variable', sans-serif; font-size: 0.7rem; font-weight: 700;
         letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent);
         display: block; margin-bottom: 12px;
       }
@@ -433,7 +417,7 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
       .case-preview-result { font-size: 0.85rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 16px; }
       .case-preview-link {
         font-size: 0.8rem; font-weight: 700; color: var(--accent);
-        font-family: 'Montserrat','Noto Sans JP',sans-serif; letter-spacing: 0.05em;
+        font-family: 'Montserrat Variable','Noto Sans JP Variable',sans-serif; letter-spacing: 0.05em;
       }
 
       /* Pre-footer CTA */
@@ -499,7 +483,7 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
       .footer-left .notice { font-size: 0.75rem; color: #999; padding: 16px 20px; border: 1px solid #eee; border-radius: 8px; line-height: 1.8; text-align: left; max-width: 420px; }
       .footer-right { display: flex; gap: 48px; justify-content: flex-end; }
       .footer-nav-group { display: flex; flex-direction: column; gap: 8px; }
-      .footer-nav-label { font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #999; margin-bottom: 4px; }
+      .footer-nav-label { font-family: 'Montserrat Variable', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #999; margin-bottom: 4px; }
       .footer-nav-link { font-size: 0.8rem; color: #666; text-decoration: none; transition: color 0.2s; cursor: pointer; }
       .footer-nav-link:hover { color: #333; }
       .footer-bottom { padding-top: 24px; text-align: center; }
