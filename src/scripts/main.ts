@@ -1,5 +1,5 @@
 // Entry point - すべての初期化をここから
-// Canvas 起動は: prefers-reduced-motion → 静止画 / WebGL 対応 → WebGL / 非対応 → Canvas 2D
+// Canvas: prefers-reduced-motion → 静止画 / WebGL 対応 → flow + particles（別 canvas）/ 非対応 → Canvas 2D
 
 import { isReducedMotion, subscribeReducedMotion } from '../lib/motion';
 import { initCanvasBackground } from './canvas-bg';
@@ -15,6 +15,7 @@ import {
   initHeroParallaxFallback,
   initScrollProgressFallback,
 } from './scroll-fallback';
+import { initParticleField, type ParticleHandle } from './webgl/particles';
 import { detectInitialTier, startFPSMonitor } from './webgl/quality';
 import { initWebGLRenderer, type WebGLHandle } from './webgl/renderer';
 
@@ -45,6 +46,7 @@ if ('requestIdleCallback' in window) {
 
 // === Canvas 起動: WebGL 優先 + tier 判定 + reduced-motion 尊重 + Canvas 2D fallback ===
 let webglHandle: WebGLHandle | null = null;
+let particleHandle: ParticleHandle | null = null;
 let stopFps: (() => void) | null = null;
 let canvas2dStarted = false;
 
@@ -68,7 +70,14 @@ function bootCanvas(): void {
 
   canvas.classList.add('visible');
 
-  // FPS 監視（低 FPS が 3 秒連続したら警告。Phase 1-C 後半で動的ダウングレード予定）
+  // 別 canvas で GPU パーティクルを起動（OGL の uniform 衝突回避）
+  const particlesCanvas = document.getElementById('particles-canvas');
+  if (particlesCanvas instanceof HTMLCanvasElement) {
+    const particleCount = tier === 'high' ? 50000 : tier === 'medium' ? 20000 : 5000;
+    particleHandle = initParticleField(particlesCanvas, particleCount, 2);
+  }
+
+  // FPS 監視（低 FPS が 3 秒連続したら警告）
   stopFps = startFPSMonitor(
     () => undefined,
     () => {
@@ -81,11 +90,15 @@ window.addEventListener('load', () => {
   setTimeout(bootCanvas, 200);
 });
 
-// reduced-motion 動的変化に対応（OS 設定変更で WebGL を止める / 再起動）
+// reduced-motion 動的変化に対応
 subscribeReducedMotion((reduced) => {
   if (reduced && webglHandle) {
     webglHandle.dispose();
     webglHandle = null;
+    if (particleHandle) {
+      particleHandle.dispose();
+      particleHandle = null;
+    }
     if (stopFps) {
       stopFps();
       stopFps = null;
