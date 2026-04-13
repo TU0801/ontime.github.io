@@ -1,6 +1,7 @@
 // Entry point - すべての初期化をここから
-// 元: index.html L848-1637
+// Canvas 起動は: prefers-reduced-motion → 静止画 / WebGL 対応 → WebGL / 非対応 → Canvas 2D
 
+import { isReducedMotion, subscribeReducedMotion } from '../lib/motion';
 import { initCanvasBackground } from './canvas-bg';
 import { initCounters } from './counters';
 import { initCustomCursor, initMagneticElements } from './cursor';
@@ -14,7 +15,8 @@ import {
   initHeroParallaxFallback,
   initScrollProgressFallback,
 } from './scroll-fallback';
-import { initWebGLRenderer } from './webgl/renderer';
+import { detectInitialTier, startFPSMonitor } from './webgl/quality';
+import { initWebGLRenderer, type WebGLHandle } from './webgl/renderer';
 
 function initAfterPaint(): void {
   enhanceHeader();
@@ -41,17 +43,54 @@ if ('requestIdleCallback' in window) {
   setTimeout(initAfterPaint, 50);
 }
 
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    const canvas = document.getElementById('tech-canvas');
-    if (canvas instanceof HTMLCanvasElement) {
-      const handle = initWebGLRenderer(canvas);
-      if (handle) {
-        canvas.classList.add('visible');
-        return;
-      }
+// === Canvas 起動: WebGL 優先 + tier 判定 + reduced-motion 尊重 + Canvas 2D fallback ===
+let webglHandle: WebGLHandle | null = null;
+let stopFps: (() => void) | null = null;
+let canvas2dStarted = false;
+
+function bootCanvas(): void {
+  if (isReducedMotion()) return; // 静止画モード（描画なし）
+
+  const canvas = document.getElementById('tech-canvas');
+  if (!(canvas instanceof HTMLCanvasElement)) return;
+
+  const tier = detectInitialTier();
+  webglHandle = initWebGLRenderer(canvas, { tier });
+
+  if (!webglHandle) {
+    // WebGL 非対応 → Canvas 2D
+    if (!canvas2dStarted) {
+      initCanvasBackground();
+      canvas2dStarted = true;
     }
-    // WebGL 非対応 → Canvas 2D fallback
-    initCanvasBackground();
-  }, 200);
+    return;
+  }
+
+  canvas.classList.add('visible');
+
+  // FPS 監視（低 FPS が 3 秒連続したら警告。Phase 1-C 後半で動的ダウングレード予定）
+  stopFps = startFPSMonitor(
+    () => undefined,
+    () => {
+      console.warn('[webgl] FPS low for 3 consecutive seconds, tier:', tier);
+    },
+  );
+}
+
+window.addEventListener('load', () => {
+  setTimeout(bootCanvas, 200);
+});
+
+// reduced-motion 動的変化に対応（OS 設定変更で WebGL を止める / 再起動）
+subscribeReducedMotion((reduced) => {
+  if (reduced && webglHandle) {
+    webglHandle.dispose();
+    webglHandle = null;
+    if (stopFps) {
+      stopFps();
+      stopFps = null;
+    }
+  } else if (!reduced && !webglHandle && !canvas2dStarted) {
+    bootCanvas();
+  }
 });

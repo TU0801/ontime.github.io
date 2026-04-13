@@ -1,9 +1,11 @@
 // OGL ベースの WebGL Renderer ハンドル
-// Phase 1-B-3: フローフィールド + マウス + dark mode 対応
-// Phase 1-C で GPU instanced particles を追加予定
+// Phase 1-C-1: GPU パーティクル統合は OGL 1.x の uniform location bug で一時 disable
+//   particle module (./particles.ts + particles.{vert,frag}) は残置、Phase 1-C 後半で
+//   raw WebGL or 別アプローチで再導入予定
 
-import { Mesh, Program, Renderer, Triangle } from 'ogl';
+import { Mesh, Program, Renderer, Transform, Triangle } from 'ogl';
 
+import type { QualityTier } from './quality';
 import basicVert from './shaders/basic.vert';
 import flowFrag from './shaders/flow.frag';
 
@@ -12,17 +14,28 @@ export type WebGLHandle = {
   dispose(): void;
 };
 
+export type WebGLOptions = {
+  tier?: QualityTier;
+};
+
 function supportsWebGL(): boolean {
   const test = document.createElement('canvas');
   return !!(test.getContext('webgl2') ?? test.getContext('webgl'));
 }
 
 /**
- * 既存の <canvas id="tech-canvas"> を OGL Renderer に紐付け、フローフィールドを描画。
- * WebGL 非対応なら null を返す（呼び出し側で Canvas 2D fallback へ）。
+ * <canvas id="tech-canvas"> を OGL Renderer に紐付ける。
+ * - フローフィールド背景（flow.frag）
+ * - GPU パーティクル群は Phase 1-C 後半で再導入予定
+ * WebGL 非対応なら null（呼び出し側で Canvas 2D fallback）。
  */
-export function initWebGLRenderer(canvas: HTMLCanvasElement): WebGLHandle | null {
+export function initWebGLRenderer(
+  canvas: HTMLCanvasElement,
+  options: WebGLOptions = {},
+): WebGLHandle | null {
   if (!supportsWebGL()) return null;
+  // tier は将来 particle count / shader complexity の調整に使う（現状 placeholder）
+  void options.tier;
 
   const renderer = new Renderer({
     canvas,
@@ -32,7 +45,6 @@ export function initWebGLRenderer(canvas: HTMLCanvasElement): WebGLHandle | null
   });
   const gl = renderer.gl;
 
-  // 状態
   let mouseX = -9999;
   let mouseY = -9999;
   let isDarkMode = false;
@@ -62,8 +74,10 @@ export function initWebGLRenderer(canvas: HTMLCanvasElement): WebGLHandle | null
   onResize();
   window.addEventListener('resize', onResize);
 
-  const geometry = new Triangle(gl);
-  const program = new Program(gl, {
+  // Scene 構築（フローフィールド背景のみ。Phase 1-C 後半で particles 追加）
+  const scene = new Transform();
+  const flowGeometry = new Triangle(gl);
+  const flowProgram = new Program(gl, {
     vertex: basicVert,
     fragment: flowFrag,
     uniforms: {
@@ -74,17 +88,19 @@ export function initWebGLRenderer(canvas: HTMLCanvasElement): WebGLHandle | null
     },
     transparent: true,
   });
-  const mesh = new Mesh(gl, { geometry, program });
+  const flowMesh = new Mesh(gl, { geometry: flowGeometry, program: flowProgram });
+  flowMesh.setParent(scene);
 
   let raf = 0;
   let time = 0;
   const render = (): void => {
     time += 0.016;
-    program.uniforms.uTime.value = time;
-    program.uniforms.uMouse.value = [mouseX, mouseY];
-    program.uniforms.uResolution.value = [window.innerWidth, window.innerHeight];
-    program.uniforms.uIsDark.value = isDarkMode ? 1 : 0;
-    renderer.render({ scene: mesh });
+    flowProgram.uniforms.uTime.value = time;
+    flowProgram.uniforms.uMouse.value = [mouseX, mouseY];
+    flowProgram.uniforms.uResolution.value = [window.innerWidth, window.innerHeight];
+    flowProgram.uniforms.uIsDark.value = isDarkMode ? 1 : 0;
+
+    renderer.render({ scene });
     raf = requestAnimationFrame(render);
   };
   raf = requestAnimationFrame(render);
