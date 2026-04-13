@@ -2,6 +2,7 @@
 // Canvas: prefers-reduced-motion → 静止画 / WebGL 対応 → flow + particles（別 canvas）/ 非対応 → Canvas 2D
 
 import { isReducedMotion, subscribeReducedMotion } from '../lib/motion';
+import { initAmbientToggle } from './audio/toggle';
 import { initCanvasBackground } from './canvas-bg';
 import { initCounters } from './counters';
 import { initCustomCursor, initMagneticElements } from './cursor';
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initInkFx();
   initSmoothScroll();
   initScrollAnimations();
+  initAmbientToggle();
 });
 
 if ('requestIdleCallback' in window) {
