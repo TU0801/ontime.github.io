@@ -9,6 +9,8 @@ import { applyTouchDeviceFlag, initFontLoading } from './flags';
 import { initInkFx } from './ink-fx';
 import { initModal } from './modal';
 import { initSectionObservers } from './observers';
+import { initScrollAnimations } from './scroll/scroll-anim';
+import { initSmoothScroll } from './scroll/smooth';
 import {
   enhanceHeader,
   initCTAGlow,
@@ -36,6 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initMagneticElements();
   initCounters();
   initInkFx();
+  initSmoothScroll();
+  initScrollAnimations();
 });
 
 if ('requestIdleCallback' in window) {
