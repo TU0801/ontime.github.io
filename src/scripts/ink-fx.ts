@@ -29,7 +29,8 @@ class Splatter {
       const speed = 1 + Math.random() * 4;
       const size = 1 + Math.random() * 3;
       this.particles.push({
-        x, y,
+        x,
+        y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 1,
         size,
@@ -46,7 +47,8 @@ class Splatter {
     for (const p of this.particles) {
       if (p.alpha <= 0) continue;
       alive = true;
-      p.x += p.vx; p.y += p.vy;
+      p.x += p.vx;
+      p.y += p.vy;
       p.vy += p.gravity;
       p.vx *= 0.98;
       p.alpha -= p.decay;
@@ -76,7 +78,8 @@ export function initInkFx(): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  let w = 0, h = 0;
+  let w = 0,
+    h = 0;
   function resize(): void {
     w = canvas.width = window.innerWidth;
     h = canvas.height = window.innerHeight;
@@ -96,10 +99,7 @@ export function initInkFx(): void {
       const cy = rect.top + rect.height / 2;
       splatters.push(new Splatter(cx, cy));
       // エッジ側の追加飛沫で筆感強化
-      splatters.push(new Splatter(
-        rect.right - 4,
-        cy + (Math.random() - 0.5) * rect.height * 0.5,
-      ));
+      splatters.push(new Splatter(rect.right - 4, cy + (Math.random() - 0.5) * rect.height * 0.5));
     }, delay);
   });
 

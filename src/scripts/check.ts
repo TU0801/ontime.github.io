@@ -6,14 +6,29 @@
 // =====================
 
 const INDUSTRIES: readonly string[] = [
-  '製造業', '小売・流通', '建設・不動産', '医療・介護',
-  '飲食・宿泊', '士業・コンサル', 'IT・ソフトウェア', '物流・運送',
-  '教育・研修', '美容・wellness', '金融・保険', 'その他',
+  '製造業',
+  '小売・流通',
+  '建設・不動産',
+  '医療・介護',
+  '飲食・宿泊',
+  '士業・コンサル',
+  'IT・ソフトウェア',
+  '物流・運送',
+  '教育・研修',
+  '美容・wellness',
+  '金融・保険',
+  'その他',
 ];
 
 const DEPARTMENTS: readonly string[] = [
-  '経営・代表', '営業・販売', '経理・財務', '人事・総務',
-  '製造・現場', '物流・在庫', 'マーケティング', 'IT・情報システム',
+  '経営・代表',
+  '営業・販売',
+  '経理・財務',
+  '人事・総務',
+  '製造・現場',
+  '物流・在庫',
+  'マーケティング',
+  'IT・情報システム',
 ];
 
 const ISSUES: readonly string[] = [
@@ -30,57 +45,187 @@ const ISSUES: readonly string[] = [
 ];
 
 const INDUSTRY_SCORE: readonly (readonly number[])[] = [
-  [3,2,1,2,2,3,3,3,2,1],
-  [2,2,3,1,2,3,1,2,2,2],
-  [2,2,2,2,2,2,3,2,1,2],
-  [3,2,2,3,2,2,3,3,2,2],
-  [2,2,2,3,2,3,1,3,1,2],
-  [3,2,3,1,3,1,3,2,2,2],
-  [2,2,2,1,2,1,2,2,3,3],
-  [2,2,2,2,2,3,2,2,2,2],
-  [2,2,2,2,2,1,2,2,2,3],
-  [2,2,2,3,2,2,1,2,2,2],
-  [2,2,3,1,3,1,3,2,3,2],
-  [2,2,2,2,2,2,2,2,2,2],
+  [3, 2, 1, 2, 2, 3, 3, 3, 2, 1],
+  [2, 2, 3, 1, 2, 3, 1, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 3, 2, 1, 2],
+  [3, 2, 2, 3, 2, 2, 3, 3, 2, 2],
+  [2, 2, 2, 3, 2, 3, 1, 3, 1, 2],
+  [3, 2, 3, 1, 3, 1, 3, 2, 2, 2],
+  [2, 2, 2, 1, 2, 1, 2, 2, 3, 3],
+  [2, 2, 2, 2, 2, 3, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 1, 2, 2, 2, 3],
+  [2, 2, 2, 3, 2, 2, 1, 2, 2, 2],
+  [2, 2, 3, 1, 3, 1, 3, 2, 3, 2],
+  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
 ];
 
 const DEPT_SCORE: readonly (readonly number[])[] = [
-  [2,2,2,1,2,2,2,2,3,2],
-  [2,2,3,1,2,2,2,2,2,2],
-  [3,2,1,1,3,1,3,2,2,1],
-  [2,2,1,3,2,1,2,2,1,2],
-  [3,1,1,2,1,3,2,3,2,1],
-  [2,2,2,1,2,3,2,2,2,1],
-  [1,2,3,1,1,1,2,1,3,2],
-  [2,2,2,1,2,2,2,2,3,3],
+  [2, 2, 2, 1, 2, 2, 2, 2, 3, 2],
+  [2, 2, 3, 1, 2, 2, 2, 2, 2, 2],
+  [3, 2, 1, 1, 3, 1, 3, 2, 2, 1],
+  [2, 2, 1, 3, 2, 1, 2, 2, 1, 2],
+  [3, 1, 1, 2, 1, 3, 2, 3, 2, 1],
+  [2, 2, 2, 1, 2, 3, 2, 2, 2, 1],
+  [1, 2, 3, 1, 1, 1, 2, 1, 3, 2],
+  [2, 2, 2, 1, 2, 2, 2, 2, 3, 3],
 ];
 
 type FollowupItem = { q: string; opts: readonly string[] };
 const FOLLOWUP: readonly FollowupItem[] = [
-  { q: '最も時間を奪っている作業はどれですか？', opts: ['データの転記・コピペ', 'PDF作成・印刷・スキャン', 'メールの送受信・管理', '承認・回覧フロー'] },
-  { q: '情報が見つからない場面はいつですか？', opts: ['顧客対応・商談中', '会議・報告作業時', '担当者引継ぎ時', '定期確認・振り返り時'] },
-  { q: '対応が遅れる主な原因は何ですか？', opts: ['承認者が捕まらない', '情報確認に時間がかかる', '担当者でないと分からない', 'フロー自体が未整備'] },
-  { q: '管理で最も難しいと感じる点は？', opts: ['希望・条件の収集が手間', 'バランス調整が複雑', '急な変更への対応', '周知・共有が大変'] },
-  { q: '最も負担が大きい処理はどれですか？', opts: ['請求書の作成', '入金確認・消込', '支払い手続き', '経費精算'] },
-  { q: '在庫管理でよく起きる問題は？', opts: ['欠品・機会損失', '過剰在庫・廃棄ロス', '発注漏れ', '複数拠点の把握困難'] },
-  { q: '書類作成で時間がかかる理由は？', opts: ['情報収集・整理が手間', 'フォーマットへの入力', '確認・承認待ち', '整合チェック・最終調整'] },
-  { q: '属人化で最も困っていることは？', opts: ['不在時に業務が止まる', '後任への引継ぎが難しい', '品質・スピードにばらつき', 'ノウハウが社内に残らない'] },
-  { q: 'データ活用の最大の障壁は？', opts: ['データが散在・未整備', '分析できる人材がいない', '活用方法が分からない', 'ツールが使いにくい'] },
-  { q: 'テレワーク化の主な障壁は？', opts: ['紙・印鑑・FAX文化', '社内システムへのアクセス', 'セキュリティへの不安', 'コミュニケーション方法'] },
+  {
+    q: '最も時間を奪っている作業はどれですか？',
+    opts: [
+      'データの転記・コピペ',
+      'PDF作成・印刷・スキャン',
+      'メールの送受信・管理',
+      '承認・回覧フロー',
+    ],
+  },
+  {
+    q: '情報が見つからない場面はいつですか？',
+    opts: ['顧客対応・商談中', '会議・報告作業時', '担当者引継ぎ時', '定期確認・振り返り時'],
+  },
+  {
+    q: '対応が遅れる主な原因は何ですか？',
+    opts: [
+      '承認者が捕まらない',
+      '情報確認に時間がかかる',
+      '担当者でないと分からない',
+      'フロー自体が未整備',
+    ],
+  },
+  {
+    q: '管理で最も難しいと感じる点は？',
+    opts: ['希望・条件の収集が手間', 'バランス調整が複雑', '急な変更への対応', '周知・共有が大変'],
+  },
+  {
+    q: '最も負担が大きい処理はどれですか？',
+    opts: ['請求書の作成', '入金確認・消込', '支払い手続き', '経費精算'],
+  },
+  {
+    q: '在庫管理でよく起きる問題は？',
+    opts: ['欠品・機会損失', '過剰在庫・廃棄ロス', '発注漏れ', '複数拠点の把握困難'],
+  },
+  {
+    q: '書類作成で時間がかかる理由は？',
+    opts: [
+      '情報収集・整理が手間',
+      'フォーマットへの入力',
+      '確認・承認待ち',
+      '整合チェック・最終調整',
+    ],
+  },
+  {
+    q: '属人化で最も困っていることは？',
+    opts: [
+      '不在時に業務が止まる',
+      '後任への引継ぎが難しい',
+      '品質・スピードにばらつき',
+      'ノウハウが社内に残らない',
+    ],
+  },
+  {
+    q: 'データ活用の最大の障壁は？',
+    opts: [
+      'データが散在・未整備',
+      '分析できる人材がいない',
+      '活用方法が分からない',
+      'ツールが使いにくい',
+    ],
+  },
+  {
+    q: 'テレワーク化の主な障壁は？',
+    opts: [
+      '紙・印鑑・FAX文化',
+      '社内システムへのアクセス',
+      'セキュリティへの不安',
+      'コミュニケーション方法',
+    ],
+  },
 ];
 
 type Solution = { name: string; desc: readonly string[] };
 const SOLUTIONS: readonly Solution[] = [
-  { name: 'Automated Workflow（業務自動化）', desc: ['ExcelのデータをAPI経由でシステムへ自動転記', 'PDFをAIが読み取りデータベースへ自動登録', '発注メールをトリガーに在庫情報を自動更新'] },
-  { name: 'Cloud Native + AI Optimization', desc: ['LINE・メール・Slackの問い合わせを1画面に集約', 'ファイル名・内容からAIが自動タグ付け・分類', '「あの件どこだっけ」をキーワード検索で即解決'] },
-  { name: 'Automated Workflow + Real-time Processing', desc: ['問い合わせ受信→担当者へ通知→テンプレ返信を全自動化', '在庫状況をリアルタイム参照して見積を即時発行', '承認ルートをシステム管理して上長不在でも稟議が止まらない'] },
-  { name: 'AI Optimization', desc: ['スタッフの希望をフォームで収集→AIが最適シフトを自動生成', '急な欠員時の代替候補を自動提案', '繁忙予測データをもとに人員配置を最適化'] },
-  { name: 'Automated Workflow', desc: ['受注データから請求書PDFを自動生成・送付', '入金消込を銀行明細と自動照合', '月次支払リストを一括処理ファイルへ自動変換'] },
-  { name: 'Data Analytics + Real-time Processing', desc: ['在庫残数を全拠点でリアルタイム共有', '過去の販売傾向から発注タイミングをAIが提案', '欠品・過剰の両方をダッシュボードで可視化'] },
-  { name: 'AI Optimization + Automated Workflow', desc: ['議事録・報告書をAIが自動ドラフト生成', '日報・点検シートの入力をフォームと連携し自動集計', '補助金・契約書類に必要な情報をAIが自動充填'] },
-  { name: 'Cloud Native + AI Optimization', desc: ['業務手順をナレッジベース化しAIがFAQ対応', '熟練者の判断ロジックをフロー図として自動可視化', 'チェックリスト・マニュアルをクラウド管理で常に最新化'] },
-  { name: 'Data Analytics', desc: ['売上・原価・工数をひとつのダッシュボードで可視化', '過去データからキャンセル・クレームのパターンを抽出', '現場の作業時間を自動計測して工数分析に活用'] },
-  { name: 'Cloud Native + Security First', desc: ['紙書類をPDF化＋電子署名に移行してフル在宅を実現', 'VPN不要のゼロトラスト環境で社外から社内システムへ安全アクセス', 'クラウドストレージ＋権限管理で情報漏洩リスクを排除'] },
+  {
+    name: 'Automated Workflow（業務自動化）',
+    desc: [
+      'ExcelのデータをAPI経由でシステムへ自動転記',
+      'PDFをAIが読み取りデータベースへ自動登録',
+      '発注メールをトリガーに在庫情報を自動更新',
+    ],
+  },
+  {
+    name: 'Cloud Native + AI Optimization',
+    desc: [
+      'LINE・メール・Slackの問い合わせを1画面に集約',
+      'ファイル名・内容からAIが自動タグ付け・分類',
+      '「あの件どこだっけ」をキーワード検索で即解決',
+    ],
+  },
+  {
+    name: 'Automated Workflow + Real-time Processing',
+    desc: [
+      '問い合わせ受信→担当者へ通知→テンプレ返信を全自動化',
+      '在庫状況をリアルタイム参照して見積を即時発行',
+      '承認ルートをシステム管理して上長不在でも稟議が止まらない',
+    ],
+  },
+  {
+    name: 'AI Optimization',
+    desc: [
+      'スタッフの希望をフォームで収集→AIが最適シフトを自動生成',
+      '急な欠員時の代替候補を自動提案',
+      '繁忙予測データをもとに人員配置を最適化',
+    ],
+  },
+  {
+    name: 'Automated Workflow',
+    desc: [
+      '受注データから請求書PDFを自動生成・送付',
+      '入金消込を銀行明細と自動照合',
+      '月次支払リストを一括処理ファイルへ自動変換',
+    ],
+  },
+  {
+    name: 'Data Analytics + Real-time Processing',
+    desc: [
+      '在庫残数を全拠点でリアルタイム共有',
+      '過去の販売傾向から発注タイミングをAIが提案',
+      '欠品・過剰の両方をダッシュボードで可視化',
+    ],
+  },
+  {
+    name: 'AI Optimization + Automated Workflow',
+    desc: [
+      '議事録・報告書をAIが自動ドラフト生成',
+      '日報・点検シートの入力をフォームと連携し自動集計',
+      '補助金・契約書類に必要な情報をAIが自動充填',
+    ],
+  },
+  {
+    name: 'Cloud Native + AI Optimization',
+    desc: [
+      '業務手順をナレッジベース化しAIがFAQ対応',
+      '熟練者の判断ロジックをフロー図として自動可視化',
+      'チェックリスト・マニュアルをクラウド管理で常に最新化',
+    ],
+  },
+  {
+    name: 'Data Analytics',
+    desc: [
+      '売上・原価・工数をひとつのダッシュボードで可視化',
+      '過去データからキャンセル・クレームのパターンを抽出',
+      '現場の作業時間を自動計測して工数分析に活用',
+    ],
+  },
+  {
+    name: 'Cloud Native + Security First',
+    desc: [
+      '紙書類をPDF化＋電子署名に移行してフル在宅を実現',
+      'VPN不要のゼロトラスト環境で社外から社内システムへ安全アクセス',
+      'クラウドストレージ＋権限管理で情報漏洩リスクを排除',
+    ],
+  },
 ];
 
 // =====================
@@ -269,12 +414,14 @@ function renderResults(): void {
   });
 
   // Share URL
-  const encoded = btoa(JSON.stringify({
-    i: state.industry,
-    d: state.department,
-    q: state.selectedIssues.join(','),
-    f: state.followupAnswers,
-  }));
+  const encoded = btoa(
+    JSON.stringify({
+      i: state.industry,
+      d: state.department,
+      q: state.selectedIssues.join(','),
+      f: state.followupAnswers,
+    }),
+  );
   const shareURL = `${location.origin}/check?r=${encoded}`;
   const displayEl = getEl('share-url-display');
   displayEl.textContent = shareURL;
@@ -286,7 +433,9 @@ function copyShareUrl(): void {
   navigator.clipboard.writeText(url).then(() => {
     const fb = getEl('copy-feedback');
     fb.textContent = 'コピーしました！';
-    setTimeout(() => { fb.textContent = ''; }, 2500);
+    setTimeout(() => {
+      fb.textContent = '';
+    }, 2500);
   });
 }
 
@@ -306,7 +455,9 @@ function restart(): void {
 // =====================
 
 function showStep(n: number): void {
-  document.querySelectorAll('.step-panel').forEach((p) => p.classList.remove('active'));
+  document.querySelectorAll('.step-panel').forEach((p) => {
+    p.classList.remove('active');
+  });
   getEl(`step-${n}`).classList.add('active');
   state.currentStep = n;
   updateProgress(n);
@@ -314,9 +465,18 @@ function showStep(n: number): void {
 }
 
 function goBack(): void {
-  if (state.currentStep === 3) { showStep(2); return; }
-  if (state.currentStep === 4) { showStep(3); return; }
-  if (state.currentStep === 2) { showStep(1); return; }
+  if (state.currentStep === 3) {
+    showStep(2);
+    return;
+  }
+  if (state.currentStep === 4) {
+    showStep(3);
+    return;
+  }
+  if (state.currentStep === 2) {
+    showStep(1);
+    return;
+  }
 }
 
 function updateProgress(step: number): void {
@@ -343,7 +503,8 @@ function initCanvas(): void {
   if (!ctx) return;
 
   const colors = ['#00C6FF', '#9D50BB', '#FF4B1F', '#333333'] as const;
-  let width = 0, height = 0;
+  let width = 0,
+    height = 0;
 
   function resize(): void {
     width = window.innerWidth;
@@ -363,7 +524,8 @@ function initCanvas(): void {
     color = colors[Math.floor(Math.random() * colors.length)]!;
 
     update(): void {
-      this.x += this.vx; this.y += this.vy;
+      this.x += this.vx;
+      this.y += this.vy;
       if (this.x < 0) this.x = width;
       if (this.x > width) this.x = 0;
       if (this.y < 0) this.y = height;
@@ -405,7 +567,10 @@ function initCanvas(): void {
 
   function animate(): void {
     ctx!.clearRect(0, 0, width, height);
-    for (const p of particles) { p.update(); p.draw(); }
+    for (const p of particles) {
+      p.update();
+      p.draw();
+    }
     drawLines();
     requestAnimationFrame(animate);
   }
@@ -433,7 +598,10 @@ function init(): void {
       };
       state.industry = data.i ?? null;
       state.department = data.d ?? null;
-      state.selectedIssues = (data.q ?? '').split(',').map(Number).filter((n: number) => !Number.isNaN(n));
+      state.selectedIssues = (data.q ?? '')
+        .split(',')
+        .map(Number)
+        .filter((n: number) => !Number.isNaN(n));
       state.followupAnswers = data.f ?? {};
       showStep(5);
       renderResults();

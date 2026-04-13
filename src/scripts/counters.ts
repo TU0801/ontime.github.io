@@ -14,12 +14,17 @@ function animateCounter(el: HTMLElement): void {
 
 export function initCounters(): void {
   const counters = document.querySelectorAll<HTMLElement>('.metric-number[data-target]');
-  const obs = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      animateCounter(entry.target as HTMLElement);
-      obs.unobserve(entry.target);
-    }
-  }, { threshold: 0.5 });
-  counters.forEach((el) => obs.observe(el));
+  const obs = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        animateCounter(entry.target as HTMLElement);
+        obs.unobserve(entry.target);
+      }
+    },
+    { threshold: 0.5 },
+  );
+  counters.forEach((el) => {
+    obs.observe(el);
+  });
 }

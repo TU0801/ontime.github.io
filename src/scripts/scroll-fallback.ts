@@ -5,22 +5,26 @@ export function initHeroParallaxFallback(): void {
   const hc = document.querySelector<HTMLElement>('.hero-content');
   if (!hc) return;
   let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (ticking) return;
-    requestAnimationFrame(() => {
-      const sy = window.scrollY;
-      const end = window.innerHeight * 0.6;
-      if (sy <= end) {
-        const p = sy / end;
-        hc.style.transform = `scale(${1 - p * 0.12}) translateY(${-p * 60}px)`;
-        hc.style.opacity = String(1 - p);
-      } else {
-        hc.style.opacity = '0';
-      }
-      ticking = false;
-    });
-    ticking = true;
-  }, { passive: true });
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (ticking) return;
+      requestAnimationFrame(() => {
+        const sy = window.scrollY;
+        const end = window.innerHeight * 0.6;
+        if (sy <= end) {
+          const p = sy / end;
+          hc.style.transform = `scale(${1 - p * 0.12}) translateY(${-p * 60}px)`;
+          hc.style.opacity = String(1 - p);
+        } else {
+          hc.style.opacity = '0';
+        }
+        ticking = false;
+      });
+      ticking = true;
+    },
+    { passive: true },
+  );
 }
 
 export function initScrollProgressFallback(): void {
@@ -29,15 +33,19 @@ export function initScrollProgressFallback(): void {
   if (!bar) return;
   bar.style.animation = 'none';
   let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (ticking) return;
-    requestAnimationFrame(() => {
-      const dh = document.documentElement.scrollHeight - window.innerHeight;
-      bar.style.width = dh > 0 ? `${(window.scrollY / dh) * 100}%` : '0%';
-      ticking = false;
-    });
-    ticking = true;
-  }, { passive: true });
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (ticking) return;
+      requestAnimationFrame(() => {
+        const dh = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = dh > 0 ? `${(window.scrollY / dh) * 100}%` : '0%';
+        ticking = false;
+      });
+      ticking = true;
+    },
+    { passive: true },
+  );
 }
 
 export function initCTAGlow(): void {

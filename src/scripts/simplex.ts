@@ -5,8 +5,14 @@ export class Simplex2D {
   private static readonly F2 = 0.5 * (Math.sqrt(3) - 1);
   private static readonly G2 = (3 - Math.sqrt(3)) / 6;
   private static readonly GRAD3: readonly (readonly [number, number])[] = [
-    [1, 1], [-1, 1], [1, -1], [-1, -1],
-    [1, 0], [-1, 0], [0, 1], [0, -1],
+    [1, 1],
+    [-1, 1],
+    [1, -1],
+    [-1, -1],
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
   ];
 
   private readonly perm = new Uint8Array(512);

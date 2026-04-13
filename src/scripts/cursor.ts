@@ -10,10 +10,17 @@ export function initCustomCursor(): void {
   const trail = document.getElementById('cursor-trail');
   if (!cursor || !trail) return;
 
-  let cx = -100, cy = -100, tx = -100, ty = -100;
-  let trX = -100, trY = -100;
+  let cx = -100,
+    cy = -100,
+    tx = -100,
+    ty = -100;
+  let trX = -100,
+    trY = -100;
 
-  document.addEventListener('mousemove', (e) => { tx = e.clientX; ty = e.clientY; });
+  document.addEventListener('mousemove', (e) => {
+    tx = e.clientX;
+    ty = e.clientY;
+  });
   document.addEventListener('mouseenter', () => {
     cursor.classList.add('visible');
     trail.classList.add('visible');
@@ -38,16 +45,22 @@ export function initCustomCursor(): void {
   });
 
   function tick(): void {
-    cx = lerp(cx, tx, 0.25); cy = lerp(cy, ty, 0.25);
+    cx = lerp(cx, tx, 0.25);
+    cy = lerp(cy, ty, 0.25);
     cursor!.style.transform = `translate(${cx}px,${cy}px) translate(-50%,-50%)`;
-    trX = lerp(trX, cx, 0.15); trY = lerp(trY, cy, 0.15);
+    trX = lerp(trX, cx, 0.15);
+    trY = lerp(trY, cy, 0.15);
     trail!.style.transform = `translate(${trX}px,${trY}px) translate(-50%,-50%)`;
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 }
 
-type MagneticConfig = { readonly selector: string; readonly threshold: number; readonly max: number };
+type MagneticConfig = {
+  readonly selector: string;
+  readonly threshold: number;
+  readonly max: number;
+};
 type MagneticItem = {
   el: HTMLElement;
   threshold: number;
@@ -69,8 +82,12 @@ export function initMagneticElements(): void {
     });
   }
 
-  let mx = 0, my = 0;
-  document.addEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; });
+  let mx = 0,
+    my = 0;
+  document.addEventListener('mousemove', (e) => {
+    mx = e.clientX;
+    my = e.clientY;
+  });
 
   function tick(): void {
     for (const it of items) {
@@ -78,7 +95,8 @@ export function initMagneticElements(): void {
       const dx = mx - (r.left + r.width / 2);
       const dy = my - (r.top + r.height / 2);
       const dist = Math.sqrt(dx * dx + dy * dy);
-      let tgtX = 0, tgtY = 0;
+      let tgtX = 0,
+        tgtY = 0;
       if (dist < it.threshold) {
         const s = 1 - dist / it.threshold;
         tgtX = dx * s * (it.max / it.threshold);

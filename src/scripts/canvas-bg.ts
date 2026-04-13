@@ -20,9 +20,13 @@ export function initCanvasBackground(): void {
   const tCtx = trailCanvas.getContext('2d');
   if (!tCtx) return;
 
-  let width = 0, height = 0, time = 0;
+  let width = 0,
+    height = 0,
+    time = 0;
   const isMobile = window.innerWidth <= 768;
-  let mouseX = -9999, mouseY = -9999, mouseActive = false;
+  let mouseX = -9999,
+    mouseY = -9999,
+    mouseActive = false;
   let isDarkMode = false;
 
   const darkObs = new MutationObserver(() => {
@@ -32,24 +36,41 @@ export function initCanvasBackground(): void {
 
   canvas.style.pointerEvents = 'none';
   window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX; mouseY = e.clientY; mouseActive = true;
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    mouseActive = true;
   });
-  window.addEventListener('mouseleave', () => { mouseActive = false; });
+  window.addEventListener('mouseleave', () => {
+    mouseActive = false;
+  });
   if (!isMobile) {
-    window.addEventListener('touchmove', (e: TouchEvent) => {
-      const t = e.touches[0];
-      if (t) { mouseX = t.clientX; mouseY = t.clientY; mouseActive = true; }
-    }, { passive: true });
-    window.addEventListener('touchend', () => { mouseActive = false; });
+    window.addEventListener(
+      'touchmove',
+      (e: TouchEvent) => {
+        const t = e.touches[0];
+        if (t) {
+          mouseX = t.clientX;
+          mouseY = t.clientY;
+          mouseActive = true;
+        }
+      },
+      { passive: true },
+    );
+    window.addEventListener('touchend', () => {
+      mouseActive = false;
+    });
   }
 
   const simplex = new Simplex2D();
   const noise = (x: number, y: number): number => simplex.noise(x, y);
 
   function resize(): void {
-    width = window.innerWidth; height = window.innerHeight;
-    canvas.width = width; canvas.height = height;
-    trailCanvas.width = width; trailCanvas.height = height;
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+    trailCanvas.width = width;
+    trailCanvas.height = height;
   }
   window.addEventListener('resize', resize);
   resize();
@@ -82,7 +103,10 @@ export function initCanvasBackground(): void {
 
   const shapes: readonly Shape[] = ['circle', 'triangle', 'hexagon', 'diamond', 'ring', 'cross'];
   function drawShape(x: number, y: number, size: number, shape: Shape, rotation: number): void {
-    ctx!.save(); ctx!.translate(x, y); ctx!.rotate(rotation); ctx!.beginPath();
+    ctx!.save();
+    ctx!.translate(x, y);
+    ctx!.rotate(rotation);
+    ctx!.beginPath();
     switch (shape) {
       case 'circle':
         ctx!.arc(0, 0, size, 0, Math.PI * 2);
@@ -104,8 +128,10 @@ export function initCanvasBackground(): void {
         ctx!.closePath();
         break;
       case 'diamond':
-        ctx!.moveTo(0, -size); ctx!.lineTo(size * 0.6, 0);
-        ctx!.lineTo(0, size); ctx!.lineTo(-size * 0.6, 0);
+        ctx!.moveTo(0, -size);
+        ctx!.lineTo(size * 0.6, 0);
+        ctx!.lineTo(0, size);
+        ctx!.lineTo(-size * 0.6, 0);
         ctx!.closePath();
         break;
       case 'ring':
@@ -115,12 +141,18 @@ export function initCanvasBackground(): void {
         break;
       case 'cross': {
         const w = size * 0.25;
-        ctx!.moveTo(-w, -size); ctx!.lineTo(w, -size);
-        ctx!.lineTo(w, -w); ctx!.lineTo(size, -w);
-        ctx!.lineTo(size, w); ctx!.lineTo(w, w);
-        ctx!.lineTo(w, size); ctx!.lineTo(-w, size);
-        ctx!.lineTo(-w, w); ctx!.lineTo(-size, w);
-        ctx!.lineTo(-size, -w); ctx!.lineTo(-w, -w);
+        ctx!.moveTo(-w, -size);
+        ctx!.lineTo(w, -size);
+        ctx!.lineTo(w, -w);
+        ctx!.lineTo(size, -w);
+        ctx!.lineTo(size, w);
+        ctx!.lineTo(w, w);
+        ctx!.lineTo(w, size);
+        ctx!.lineTo(-w, size);
+        ctx!.lineTo(-w, w);
+        ctx!.lineTo(-size, w);
+        ctx!.lineTo(-size, -w);
+        ctx!.lineTo(-w, -w);
         ctx!.closePath();
         break;
       }
@@ -144,7 +176,8 @@ export function initCanvasBackground(): void {
         const dx = noise(x * noiseScale + 100, y * noiseScale + t * 0.0003) * distort * 0.5;
         let alpha = 0.07 * darkMul;
         if (mouseActive) {
-          const mdx = x - mouseX, mdy = y + dy - mouseY;
+          const mdx = x - mouseX,
+            mdy = y + dy - mouseY;
           const md = Math.sqrt(mdx * mdx + mdy * mdy);
           if (md < 250) alpha += (1 - md / 250) * 0.15;
         }
@@ -163,7 +196,8 @@ export function initCanvasBackground(): void {
         const dy = noise(x * noiseScale + t * 0.0003 + 50, y * noiseScale + 100) * distort * 0.5;
         let alpha = 0.07 * darkMul;
         if (mouseActive) {
-          const mdx = x + dx - mouseX, mdy = y - mouseY;
+          const mdx = x + dx - mouseX,
+            mdy = y - mouseY;
           const md = Math.sqrt(mdx * mdx + mdy * mdy);
           if (md < 250) alpha += (1 - md / 250) * 0.15;
         }
@@ -223,12 +257,15 @@ export function initCanvasBackground(): void {
     size = 0;
     depth = 0;
 
-    constructor() { this.reset(true); }
+    constructor() {
+      this.reset(true);
+    }
 
     reset(initial: boolean): void {
       this.x = Math.random() * width;
       this.y = Math.random() * height;
-      this.prevX = this.x; this.prevY = this.y;
+      this.prevX = this.x;
+      this.prevY = this.y;
       this.speed = 0.8 + Math.random() * 1.5;
       this.life = initial ? Math.random() : 0;
       this.maxLife = 0.6 + Math.random() * 0.4;
@@ -238,14 +275,16 @@ export function initCanvasBackground(): void {
     }
 
     update(t: number): void {
-      this.prevX = this.x; this.prevY = this.y;
+      this.prevX = this.x;
+      this.prevY = this.y;
       const angle = noise(this.x * 0.003, this.y * 0.003 + t * 0.0003) * Math.PI * 2;
       const depthSpeed = (0.3 + this.depth * 0.7) * this.speed;
       this.x += Math.cos(angle) * depthSpeed;
       this.y += Math.sin(angle) * depthSpeed;
       // マウス引力
       if (mouseActive) {
-        const dx = mouseX - this.x, dy = mouseY - this.y;
+        const dx = mouseX - this.x,
+          dy = mouseY - this.y;
         const d = Math.sqrt(dx * dx + dy * dy);
         if (d < 250 && d > 1) {
           const force = (1 - d / 250) * 2;
@@ -255,10 +294,13 @@ export function initCanvasBackground(): void {
       }
       this.life += this.decay;
       if (
-        this.x < -10 || this.x > width + 10 ||
-        this.y < -10 || this.y > height + 10 ||
+        this.x < -10 ||
+        this.x > width + 10 ||
+        this.y < -10 ||
+        this.y > height + 10 ||
         this.life > this.maxLife
-      ) this.reset(false);
+      )
+        this.reset(false);
     }
   }
 
@@ -299,13 +341,15 @@ export function initCanvasBackground(): void {
   function drawCircuits(t: number): void {
     ctx!.lineWidth = 0.4;
     for (const node of circuitNodes) {
-      node.x += node.vx; node.y += node.vy;
+      node.x += node.vx;
+      node.y += node.vy;
       if (node.x < -100) node.x = width + 100;
       if (node.x > width + 100) node.x = -100;
       if (node.y < -100) node.y = height + 100;
       if (node.y > height + 100) node.y = -100;
       for (let b = 0; b < node.branches; b++) {
-        let cx = node.x, cy = node.y;
+        let cx = node.x,
+          cy = node.y;
         ctx!.beginPath();
         ctx!.moveTo(cx, cy);
         const segments = 3 + Math.floor(Math.random() * 2);
@@ -321,11 +365,15 @@ export function initCanvasBackground(): void {
         ctx!.stroke();
         // 端点に小さな丸
         ctx!.fillStyle = `rgba(0,198,255,${Math.max(0, alpha * 2.5)})`;
-        ctx!.beginPath(); ctx!.arc(cx, cy, 1.5, 0, Math.PI * 2); ctx!.fill();
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, 1.5, 0, Math.PI * 2);
+        ctx!.fill();
       }
       // 中心ノード
       ctx!.fillStyle = 'rgba(157,80,187,0.1)';
-      ctx!.beginPath(); ctx!.arc(node.x, node.y, 2, 0, Math.PI * 2); ctx!.fill();
+      ctx!.beginPath();
+      ctx!.arc(node.x, node.y, 2, 0, Math.PI * 2);
+      ctx!.fill();
     }
   }
 
@@ -349,7 +397,9 @@ export function initCanvasBackground(): void {
     lifespan = 0;
     depth = 0;
 
-    constructor() { this.reset(true); }
+    constructor() {
+      this.reset(true);
+    }
 
     reset(initial: boolean): void {
       this.x = Math.random() * width;
@@ -376,7 +426,8 @@ export function initCanvasBackground(): void {
       this.rotation += this.rotSpeed;
       // マウス反発
       if (mouseActive) {
-        const dx = this.x - mouseX, dy = this.y - mouseY;
+        const dx = this.x - mouseX,
+          dy = this.y - mouseY;
         const d = Math.sqrt(dx * dx + dy * dy);
         if (d < 180 && d > 1) {
           const force = (1 - d / 180) * 3;
@@ -410,7 +461,9 @@ export function initCanvasBackground(): void {
       grad.addColorStop(0.5, `rgba(${r},${g},${b},${alpha * 0.05})`);
       grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
       ctx!.fillStyle = grad;
-      ctx!.beginPath(); ctx!.arc(this.x, this.y, glowR, 0, Math.PI * 2); ctx!.fill();
+      ctx!.beginPath();
+      ctx!.arc(this.x, this.y, glowR, 0, Math.PI * 2);
+      ctx!.fill();
       // 本体
       ctx!.fillStyle = `rgba(${r},${g},${b},${alpha})`;
       drawShape(this.x, this.y, sz, this.shape, this.rotation);
@@ -433,11 +486,13 @@ export function initCanvasBackground(): void {
       for (let j = i + 1; j < nodes.length; j++) {
         const nj = nodes[j]!;
         if (nj.life <= 0) continue;
-        const dx = ni.x - nj.x, dy = ni.y - nj.y;
+        const dx = ni.x - nj.x,
+          dy = ni.y - nj.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 200) {
           const alpha = (1 - dist / 200) * 0.2 * Math.min(ni.life, nj.life);
-          const ci = ni.color, cj = nj.color;
+          const ci = ni.color,
+            cj = nj.color;
           const grad = ctx!.createLinearGradient(ni.x, ni.y, nj.x, nj.y);
           grad.addColorStop(0, `rgba(${ci.r},${ci.g},${ci.b},${alpha})`);
           grad.addColorStop(1, `rgba(${cj.r},${cj.g},${cj.b},${alpha})`);
@@ -455,7 +510,8 @@ export function initCanvasBackground(): void {
       }
       // マウスへの接続線
       if (mouseActive) {
-        const dx = ni.x - mouseX, dy = ni.y - mouseY;
+        const dx = ni.x - mouseX,
+          dy = ni.y - mouseY;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 250) {
           const alpha = (1 - dist / 250) * 0.3 * ni.life;
@@ -485,11 +541,16 @@ export function initCanvasBackground(): void {
       const rp = ripples[i]!;
       rp.radius += rp.speed;
       rp.alpha -= 0.003;
-      if (rp.alpha <= 0) { ripples.splice(i, 1); continue; }
+      if (rp.alpha <= 0) {
+        ripples.splice(i, 1);
+        continue;
+      }
       const c = getFlowColor(rp.x, rp.y, t);
       ctx!.strokeStyle = `rgba(${c.r | 0},${c.g | 0},${c.b | 0},${rp.alpha})`;
       ctx!.lineWidth = 1;
-      ctx!.beginPath(); ctx!.arc(rp.x, rp.y, rp.radius, 0, Math.PI * 2); ctx!.stroke();
+      ctx!.beginPath();
+      ctx!.arc(rp.x, rp.y, rp.radius, 0, Math.PI * 2);
+      ctx!.stroke();
     }
   }
 
@@ -498,15 +559,15 @@ export function initCanvasBackground(): void {
     time++;
     ctx!.clearRect(0, 0, width, height);
 
-    drawGrid(time);            // Layer 0: ノイズ歪みグリッド (最奥)
-    drawAurora(time);          // Layer 1: オーロラリボン
-    drawFlowTrails(time);      // Layer 2: フローフィールドトレイル
-    drawCircuits(time);        // Layer 3: 回路パターン
+    drawGrid(time); // Layer 0: ノイズ歪みグリッド (最奥)
+    drawAurora(time); // Layer 1: オーロラリボン
+    drawFlowTrails(time); // Layer 2: フローフィールドトレイル
+    drawCircuits(time); // Layer 3: 回路パターン
     // Layer 4: ジオメトリックノード＋接続
     for (const n of nodes) n.update(time);
     drawNodeConnections(time);
     for (const n of nodes) n.draw(time);
-    updateRipples(time);       // Layer 5: マウスリップル (最前面)
+    updateRipples(time); // Layer 5: マウスリップル (最前面)
 
     requestAnimationFrame(animate);
   }
