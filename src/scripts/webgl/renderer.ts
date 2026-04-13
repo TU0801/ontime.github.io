@@ -3,10 +3,11 @@
 //   particle module (./particles.ts + particles.{vert,frag}) は残置、Phase 1-C 後半で
 //   raw WebGL or 別アプローチで再導入予定
 
-import { Mesh, Program, Renderer, Transform, Triangle } from 'ogl';
+import { Mesh, Post, Program, Renderer, Transform, Triangle } from 'ogl';
 
 import type { QualityTier } from './quality';
 import basicVert from './shaders/basic.vert';
+import bloomFrag from './shaders/bloom-composite.frag';
 import flowFrag from './shaders/flow.frag';
 
 export type WebGLHandle = {
@@ -68,12 +69,6 @@ export function initWebGLRenderer(
   });
   darkObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-  const onResize = (): void => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  };
-  onResize();
-  window.addEventListener('resize', onResize);
-
   // Scene 構築（フローフィールド背景のみ。Phase 1-C 後半で particles 追加）
   const scene = new Transform();
   const flowGeometry = new Triangle(gl);
@@ -91,6 +86,23 @@ export function initWebGLRenderer(
   const flowMesh = new Mesh(gl, { geometry: flowGeometry, program: flowProgram });
   flowMesh.setParent(scene);
 
+  // Post-process: Bloom composite (1 pass、scene → bloom additive blend)
+  const post = new Post(gl);
+  post.addPass({
+    fragment: bloomFrag,
+    uniforms: {
+      uResolution: { value: [window.innerWidth, window.innerHeight] },
+      uIntensity: { value: 1.2 },
+    },
+  });
+
+  const onResize = (): void => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    post.resize();
+  };
+  onResize();
+  window.addEventListener('resize', onResize);
+
   let raf = 0;
   let time = 0;
   const render = (): void => {
@@ -100,7 +112,7 @@ export function initWebGLRenderer(
     flowProgram.uniforms.uResolution.value = [window.innerWidth, window.innerHeight];
     flowProgram.uniforms.uIsDark.value = isDarkMode ? 1 : 0;
 
-    renderer.render({ scene });
+    post.render({ scene });
     raf = requestAnimationFrame(render);
   };
   raf = requestAnimationFrame(render);
