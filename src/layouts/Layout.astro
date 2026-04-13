@@ -18,6 +18,26 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://ontime.click').toString();
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'ON TIME',
+  alternateName: 'on-time',
+  url: 'https://ontime.click',
+  description,
+  slogan: '時間を、味方に。',
+  areaServed: { '@type': 'Country', name: 'Japan' },
+  knowsAbout: [
+    'AI Optimization',
+    'Cloud Native',
+    'Automated Workflow',
+    'Data Analytics',
+    'Scalability',
+    'Security First',
+    'Real-time Processing',
+  ],
+};
 ---
 
 <!doctype html>
@@ -40,6 +60,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://ontime.c
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+
+    <!-- JSON-LD 構造化データ（Organization） -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
     <ClientRouter />
 
@@ -533,8 +556,15 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://ontime.c
         border: 1px solid rgba(0,0,0,0.05);
       }
       .modal-overlay.active .modal-content { transform: scale(1); }
-      .close-btn { position: absolute; top: 20px; right: 20px; font-size: 2rem; cursor: pointer; color: #999; transition: color 0.3s; }
+      .close-btn {
+        position: absolute; top: 20px; right: 20px;
+        font-size: 2rem; cursor: pointer; color: #999;
+        transition: color 0.3s;
+        background: none; border: none; padding: 0;
+        line-height: 1; font-family: inherit;
+      }
       .close-btn:hover { color: #333; }
+      .close-btn:focus-visible { outline: 2px solid var(--accent-purple); outline-offset: 4px; }
       .modal-title { font-size: 2.5rem; margin-bottom: 20px; font-weight: 900; }
       .modal-desc { font-size: 1.1rem; color: #555; margin-bottom: 40px; line-height: 1.8; }
       .case-study { background: #f8f9fa; border-left: 5px solid #00C6FF; padding: 30px; border-radius: 0 10px 10px 0; }
