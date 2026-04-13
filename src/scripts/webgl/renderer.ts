@@ -92,7 +92,7 @@ export function initWebGLRenderer(
     fragment: bloomFrag,
     uniforms: {
       uResolution: { value: [window.innerWidth, window.innerHeight] },
-      uIntensity: { value: 1.2 },
+      uIntensity: { value: 0.5 },
     },
   });
 

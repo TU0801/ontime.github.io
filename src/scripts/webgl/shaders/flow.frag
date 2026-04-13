@@ -1,5 +1,5 @@
 // フローフィールド + ポストエフェクト統合フラグメントシェーダー
-// Phase 2-A: Chromatic Aberration / Vignette / Film Grain を inline 追加
+// モノクローム × 深いコバルト トーン（淡い霞として描画）
 
 precision highp float;
 
@@ -11,29 +11,22 @@ uniform vec2 uMouse;       // 画面座標ピクセル
 uniform vec2 uResolution;  // 画面サイズピクセル
 uniform float uIsDark;     // 0.0 = light, 1.0 = dark
 
-// 4 色パレット
+// 明るめレンジを中心に据え、深いコバルトは影としてだけ使う
 vec3 paletteSample(float t) {
-  t = clamp(t, 0.0, 1.0) * 3.0;
-  vec3 a, b;
-  float f;
-  if (t < 1.0) {
-    a = vec3(0.0, 0.776, 1.0);
-    b = vec3(0.616, 0.314, 0.733);
-    f = t;
-  } else if (t < 2.0) {
-    a = vec3(0.616, 0.314, 0.733);
-    b = vec3(1.0, 0.294, 0.122);
-    f = t - 1.0;
+  t = clamp(t, 0.0, 1.0);
+  vec3 haze   = vec3(0.890, 0.895, 0.905);  // 蒼白（ほぼクリームに近い）
+  vec3 mist   = vec3(0.710, 0.735, 0.770);  // 明るいダスティ
+  vec3 dusty  = vec3(0.455, 0.545, 0.640);  // 中間
+  vec3 deep   = vec3(0.180, 0.290, 0.430);  // コバルト（影）
+  if (t < 0.4) {
+    return mix(haze, mist, t / 0.4);
+  } else if (t < 0.75) {
+    return mix(mist, dusty, (t - 0.4) / 0.35);
   } else {
-    a = vec3(1.0, 0.294, 0.122);
-    b = vec3(0.196, 0.196, 0.196);
-    f = t - 2.0;
+    return mix(dusty, deep, (t - 0.75) / 0.25);
   }
-  return mix(a, b, f);
 }
 
-// flow フィールド + パレット + マウス + ribbon を計算
-// Chromatic Aberration の 3 回呼び出しに対応するため関数化
 vec3 computeBaseColor(vec2 uv) {
   float aspect = uResolution.x / uResolution.y;
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.0;
@@ -49,17 +42,15 @@ vec3 computeBaseColor(vec2 uv) {
   streak = (streak / 6.0 + 1.0) * 0.5;
 
   vec3 color = paletteSample(streak);
-  color = mix(color, color * 0.4 + vec3(0.05), uIsDark);
 
+  // Dark モードでは深み、Light モードではほぼそのまま明るく保つ
+  color = mix(color, color * 0.32 + vec3(0.03, 0.04, 0.06), uIsDark);
+
+  // マウス位置に控えめなコバルトのホットスポット
   vec2 mouseNorm = uMouse / uResolution;
   vec2 mp = (mouseNorm - 0.5) * vec2(aspect, 1.0) * 2.0;
   float md = distance(p, mp);
-  color += vec3(0.3, 0.5, 0.6) * smoothstep(0.55, 0.0, md) * 0.5;
-
-  float ribbonNoise = snoise(p * 0.3 + uTime * 0.02);
-  float ribbon = sin(uv.y * 8.0 + ribbonNoise * 3.14159) * 0.5 + 0.5;
-  ribbon = pow(ribbon, 4.0) * 0.15;
-  color += paletteSample(streak * 0.8 + 0.2) * ribbon;
+  color += vec3(0.06, 0.10, 0.18) * smoothstep(0.55, 0.0, md) * 0.4;
 
   return color;
 }
@@ -75,20 +66,21 @@ void main() {
   vec2 uv = vUv;
   float dist = distance(uv, vec2(0.5));
 
-  // === Chromatic Aberration: 中心からの距離スケールで R/B を別 uv で sampling ===
-  vec2 caOffset = (uv - 0.5) * dist * 0.012;
+  // === Chromatic Aberration: 抑えめ 0.004 ===
+  vec2 caOffset = (uv - 0.5) * dist * 0.004;
   vec3 baseR = computeBaseColor(uv + caOffset);
   vec3 baseG = computeBaseColor(uv);
   vec3 baseB = computeBaseColor(uv - caOffset);
   vec3 color = vec3(baseR.r, baseG.g, baseB.b);
 
-  // === Vignette: 周辺の明度を落とす ===
-  float vignette = smoothstep(0.85, 0.3, dist);
-  color *= mix(1.0, vignette, 0.55);
+  // === Vignette: 周辺の明度を落とす（控えめに） ===
+  float vignette = smoothstep(0.95, 0.2, dist);
+  color *= mix(1.0, vignette, 0.35);
 
-  // === Film Grain: hash21 で擬似ノイズ、time で動的 ===
+  // === Film Grain ===
   float grain = hash21(uv * uResolution + uTime * 100.0) - 0.5;
-  color += vec3(grain) * 0.05;
+  color += vec3(grain) * 0.035;
 
-  gl_FragColor = vec4(color, 0.85);
+  // alpha を低めにして背景クリームを透かす
+  gl_FragColor = vec4(color, 0.55);
 }

@@ -75,12 +75,12 @@ export function initCanvasBackground(): void {
   window.addEventListener('resize', resize);
   resize();
 
-  // ===== カラーパレット =====
+  // ===== カラーパレット (モノクローム × 深いコバルト) =====
   const palette: readonly RGB[] = [
-    { r: 0, g: 198, b: 255 },
-    { r: 157, g: 80, b: 187 },
-    { r: 255, g: 75, b: 31 },
-    { r: 50, g: 50, b: 50 },
+    { r: 30, g: 58, b: 95 }, // #1E3A5F deep cobalt
+    { r: 90, g: 122, b: 148 }, // #5A7A94 dusty blue
+    { r: 166, g: 159, b: 147 }, // #A69F93 warm taupe
+    { r: 42, g: 42, b: 42 }, // #2A2A2A charcoal
   ];
   function lerpColor(a: RGB, b: RGB, t: number): RGB {
     return {
@@ -181,7 +181,7 @@ export function initCanvasBackground(): void {
           const md = Math.sqrt(mdx * mdx + mdy * mdy);
           if (md < 250) alpha += (1 - md / 250) * 0.15;
         }
-        ctx!.strokeStyle = `rgba(157,80,187,${alpha})`;
+        ctx!.strokeStyle = `rgba(90,122,148,${alpha})`;
         if (x === 0) ctx!.moveTo(x + dx, y + dy);
         else ctx!.lineTo(x + dx, y + dy);
       }
@@ -201,7 +201,7 @@ export function initCanvasBackground(): void {
           const md = Math.sqrt(mdx * mdx + mdy * mdy);
           if (md < 250) alpha += (1 - md / 250) * 0.15;
         }
-        ctx!.strokeStyle = `rgba(0,198,255,${alpha})`;
+        ctx!.strokeStyle = `rgba(30,58,95,${alpha})`;
         if (y === 0) ctx!.moveTo(x + dx, y + dy);
         else ctx!.lineTo(x + dx, y + dy);
       }
@@ -361,16 +361,16 @@ export function initCanvasBackground(): void {
           ctx!.lineTo(cx, cy);
         }
         const alpha = 0.1 + noise(node.x * 0.005 + t * 0.0005, node.y * 0.005) * 0.06;
-        ctx!.strokeStyle = `rgba(0,198,255,${Math.max(0, alpha)})`;
+        ctx!.strokeStyle = `rgba(30,58,95,${Math.max(0, alpha)})`;
         ctx!.stroke();
         // 端点に小さな丸
-        ctx!.fillStyle = `rgba(0,198,255,${Math.max(0, alpha * 2.5)})`;
+        ctx!.fillStyle = `rgba(30,58,95,${Math.max(0, alpha * 2.5)})`;
         ctx!.beginPath();
         ctx!.arc(cx, cy, 1.5, 0, Math.PI * 2);
         ctx!.fill();
       }
       // 中心ノード
-      ctx!.fillStyle = 'rgba(157,80,187,0.1)';
+      ctx!.fillStyle = 'rgba(90,122,148,0.12)';
       ctx!.beginPath();
       ctx!.arc(node.x, node.y, 2, 0, Math.PI * 2);
       ctx!.fill();

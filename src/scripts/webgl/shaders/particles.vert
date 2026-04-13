@@ -1,6 +1,5 @@
 // GPU パーティクル vertex shader
-// 各 instance の seed (position attribute) + time から決定論的に位置計算
-// life cycle / color / mouse 引力 / flow field 追従を全部 GPU 並列で
+// モノトーン + コバルトで個体をシード位相から揺らす
 
 attribute vec2 position;  // 各粒子固有の seed [0..1]^2
 
@@ -38,21 +37,22 @@ void main() {
     p += normalize(toMouse) * (1.0 - md / 0.4) * 0.06;
   }
 
-  // ライフサイクル: sin 波形でフェード in/out
-  float lifePhase = seed.y * 6.28 + uTime * 0.2;
-  vAlpha = (sin(lifePhase) * 0.5 + 0.5) * 0.7;
+  // ライフサイクル: sin 波形でフェード in/out（より静かに）
+  float lifePhase = seed.y * 6.28 + uTime * 0.18;
+  vAlpha = (sin(lifePhase) * 0.5 + 0.5) * 0.85;
 
-  // 色: シード位相 + 時間で 3 色グラデーション
-  float colorMix = (sin(seed.x * 6.28 + uTime * 0.1) + 1.0) * 0.5;
-  vColor = mix(
-    mix(vec3(0.0, 0.776, 1.0), vec3(0.616, 0.314, 0.733), colorMix),
-    vec3(1.0, 0.294, 0.122),
-    seed.x * 0.3
-  );
+  // 色: コバルト基調のモノトーン。シード位相で微細な明度バリアンス
+  vec3 deep = vec3(0.118, 0.227, 0.373);  // #1E3A5F
+  vec3 mid  = vec3(0.353, 0.478, 0.580);  // #5A7A94
+  vec3 haze = vec3(0.780, 0.795, 0.815);  // 蒼白
+  float tone = sin(seed.x * 6.28 + uTime * 0.08) * 0.5 + 0.5;
+  vec3 c1 = mix(deep, mid, tone);
+  // ごくわずかに蒼白を混ぜて空気感を出す
+  vColor = mix(c1, haze, seed.y * 0.25);
 
-  // depth-like スケール（手前の粒は大きく見える）
+  // depth-like スケール（手前の粒は大きく、奥は細かく）
   float depth = fract(seed.x * 7.13);
-  gl_PointSize = uPointSize * (0.4 + depth * 0.6);
+  gl_PointSize = uPointSize * (0.55 + depth * 0.85);
 
   gl_Position = vec4(p, 0.0, 1.0);
 }

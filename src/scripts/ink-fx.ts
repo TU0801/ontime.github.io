@@ -13,10 +13,10 @@ type InkParticle = {
 };
 
 const INK_COLORS = [
-  'rgba(0,198,255,',
-  'rgba(157,80,187,',
-  'rgba(255,75,31,',
-  'rgba(50,50,50,',
+  'rgba(30,58,95,', // #1E3A5F deep cobalt
+  'rgba(90,122,148,', // #5A7A94 dusty blue
+  'rgba(42,42,42,', // #2A2A2A charcoal
+  'rgba(166,159,147,', // #A69F93 warm taupe
 ] as const;
 
 class Splatter {

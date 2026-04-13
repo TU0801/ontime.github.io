@@ -400,7 +400,7 @@ function renderResults(): void {
 
     const card = document.createElement('div');
     card.className = 'result-card';
-    card.style.borderLeftColor = rank === 0 ? '#9D50BB' : rank === 1 ? '#00C6FF' : '#FF4B1F';
+    card.style.borderLeftColor = rank === 0 ? '#1E3A5F' : rank === 1 ? '#5A7A94' : '#A69F93';
     const descHtml = `<ul>${sol.desc.map((d) => `<li>${d}</li>`).join('')}</ul>`;
     card.innerHTML = `
       <div class="result-issue-label">課題 ${rank + 1}</div>
@@ -502,7 +502,7 @@ function initCanvas(): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  const colors = ['#00C6FF', '#9D50BB', '#FF4B1F', '#333333'] as const;
+  const colors = ['#1E3A5F', '#5A7A94', '#A69F93', '#2A2A2A'] as const;
   let width = 0,
     height = 0;
 

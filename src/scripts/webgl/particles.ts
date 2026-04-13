@@ -22,15 +22,16 @@ function supportsWebGL(): boolean {
  */
 export function initParticleField(
   canvas: HTMLCanvasElement,
-  count = 50000,
-  pointSize = 2,
+  count = 12000,
+  pointSize = 5,
 ): ParticleHandle | null {
   if (!supportsWebGL()) return null;
 
+  const dpr = Math.min(window.devicePixelRatio, 2);
   const renderer = new Renderer({
     canvas,
     alpha: true,
-    dpr: Math.min(window.devicePixelRatio, 2),
+    dpr,
     antialias: true,
   });
   const gl = renderer.gl;
@@ -75,7 +76,7 @@ export function initParticleField(
       uTime: { value: 0 },
       uMouse: { value: [mouseX, mouseY] },
       uResolution: { value: [window.innerWidth, window.innerHeight] },
-      uPointSize: { value: pointSize },
+      uPointSize: { value: pointSize * dpr },
     },
     transparent: true,
     depthTest: false,
