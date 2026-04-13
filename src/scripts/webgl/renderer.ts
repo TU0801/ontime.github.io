@@ -1,27 +1,27 @@
 // OGL ベースの WebGL Renderer ハンドル
-// Phase 1-B-1: minimal「Hello WebGL」レベル
-// Phase 1-B-2 で Simplex / フローフィールドへ拡張、Phase 1-C で paritcles 追加予定。
+// Phase 1-B-3: フローフィールド + マウス + dark mode 対応
+// Phase 1-C で GPU instanced particles を追加予定
 
 import { Mesh, Program, Renderer, Triangle } from 'ogl';
 
-import basicFrag from './shaders/basic.frag';
 import basicVert from './shaders/basic.vert';
+import flowFrag from './shaders/flow.frag';
 
 export type WebGLHandle = {
   renderer: Renderer;
   dispose(): void;
 };
 
+function supportsWebGL(): boolean {
+  const test = document.createElement('canvas');
+  return !!(test.getContext('webgl2') ?? test.getContext('webgl'));
+}
+
 /**
- * 既存の <canvas id="tech-canvas"> を OGL Renderer に紐付け、minimal のシェーダーで描画。
- * Phase 1-B-2 以降で拡張する。
+ * 既存の <canvas id="tech-canvas"> を OGL Renderer に紐付け、フローフィールドを描画。
+ * WebGL 非対応なら null を返す（呼び出し側で Canvas 2D fallback へ）。
  */
 export function initWebGLRenderer(canvas: HTMLCanvasElement): WebGLHandle | null {
-  // WebGL2 が使えなければ早期 return（fallback は Phase 1-C-2）
-  const supportsWebGL = (): boolean => {
-    const test = document.createElement('canvas');
-    return !!(test.getContext('webgl2') ?? test.getContext('webgl'));
-  };
   if (!supportsWebGL()) return null;
 
   const renderer = new Renderer({
@@ -32,19 +32,47 @@ export function initWebGLRenderer(canvas: HTMLCanvasElement): WebGLHandle | null
   });
   const gl = renderer.gl;
 
-  const resize = (): void => {
+  // 状態
+  let mouseX = -9999;
+  let mouseY = -9999;
+  let isDarkMode = false;
+
+  const onMouseMove = (e: MouseEvent): void => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  };
+  const onTouchMove = (e: TouchEvent): void => {
+    const t = e.touches[0];
+    if (t) {
+      mouseX = t.clientX;
+      mouseY = t.clientY;
+    }
+  };
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('touchmove', onTouchMove, { passive: true });
+
+  const darkObs = new MutationObserver(() => {
+    isDarkMode = document.body.classList.contains('theme-dark');
+  });
+  darkObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+  const onResize = (): void => {
     renderer.setSize(window.innerWidth, window.innerHeight);
   };
-  resize();
-  window.addEventListener('resize', resize);
+  onResize();
+  window.addEventListener('resize', onResize);
 
   const geometry = new Triangle(gl);
   const program = new Program(gl, {
     vertex: basicVert,
-    fragment: basicFrag,
+    fragment: flowFrag,
     uniforms: {
       uTime: { value: 0 },
+      uMouse: { value: [mouseX, mouseY] },
+      uResolution: { value: [window.innerWidth, window.innerHeight] },
+      uIsDark: { value: 0 },
     },
+    transparent: true,
   });
   const mesh = new Mesh(gl, { geometry, program });
 
@@ -53,6 +81,9 @@ export function initWebGLRenderer(canvas: HTMLCanvasElement): WebGLHandle | null
   const render = (): void => {
     time += 0.016;
     program.uniforms.uTime.value = time;
+    program.uniforms.uMouse.value = [mouseX, mouseY];
+    program.uniforms.uResolution.value = [window.innerWidth, window.innerHeight];
+    program.uniforms.uIsDark.value = isDarkMode ? 1 : 0;
     renderer.render({ scene: mesh });
     raf = requestAnimationFrame(render);
   };
@@ -62,7 +93,10 @@ export function initWebGLRenderer(canvas: HTMLCanvasElement): WebGLHandle | null
     renderer,
     dispose(): void {
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('touchmove', onTouchMove);
+      darkObs.disconnect();
     },
   };
 }

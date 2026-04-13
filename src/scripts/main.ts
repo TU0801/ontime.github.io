@@ -14,6 +14,7 @@ import {
   initHeroParallaxFallback,
   initScrollProgressFallback,
 } from './scroll-fallback';
+import { initWebGLRenderer } from './webgl/renderer';
 
 function initAfterPaint(): void {
   enhanceHeader();
@@ -41,5 +42,16 @@ if ('requestIdleCallback' in window) {
 }
 
 window.addEventListener('load', () => {
-  setTimeout(initCanvasBackground, 200);
+  setTimeout(() => {
+    const canvas = document.getElementById('tech-canvas');
+    if (canvas instanceof HTMLCanvasElement) {
+      const handle = initWebGLRenderer(canvas);
+      if (handle) {
+        canvas.classList.add('visible');
+        return;
+      }
+    }
+    // WebGL 非対応 → Canvas 2D fallback
+    initCanvasBackground();
+  }, 200);
 });
