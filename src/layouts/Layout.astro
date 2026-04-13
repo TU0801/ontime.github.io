@@ -9,9 +9,15 @@ import '@fontsource/zen-antique';
 
 interface Props {
   title?: string;
+  description?: string;
 }
 
-const { title = 'ON TIME | Future Optimization' } = Astro.props;
+const {
+  title = 'ON TIME | Future Optimization',
+  description = '残業を、過去にする。AI・クラウドネイティブ・自動化ワークフローで業務効率を抜本的に変える、ON TIME のソリューション。',
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://ontime.click').toString();
 ---
 
 <!doctype html>
@@ -19,7 +25,21 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#9D50BB" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalURL} />
     <title>{title}</title>
+
+    <!-- OpenGraph / Twitter Card -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:locale" content="ja_JP" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
 
     <ClientRouter />
 
