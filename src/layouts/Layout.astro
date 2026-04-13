@@ -28,12 +28,40 @@ const { title = 'ON TIME | Future Optimization' } = Astro.props;
     <style is:global>
       /* ===== Critical CSS（Above the fold） ===== */
       :root {
+        /* Surface */
         --bg-color: #ffffff;
         --text-main: #333333;
         --text-sub: #666666;
-        --accent-gradient: linear-gradient(135deg, #00C6FF, #9D50BB, #FF4B1F);
         --glass-bg: rgba(255, 255, 255, 0.85);
         --modal-bg: rgba(255, 255, 255, 0.95);
+
+        /* Accent palette: OKLCH 表現で色相維持の上で perceptual な明度コントロール */
+        --accent-cyan: oklch(74% 0.17 230);
+        --accent-purple: oklch(55% 0.20 310);
+        --accent-orange: oklch(68% 0.22 40);
+        --accent-gradient: linear-gradient(135deg, #00C6FF, #9D50BB, #FF4B1F);
+
+        /* Typography scale (clamp で responsive) */
+        --fs-display: clamp(2.4rem, 5vw + 1rem, 5rem);
+        --fs-h2: clamp(1.2rem, 2vw + 0.5rem, 2rem);
+        --fs-h3: 0.8rem;
+        --fs-body: 1rem;
+        --fs-small: 0.85rem;
+
+        /* Spacing scale */
+        --sp-xs: 4px;
+        --sp-sm: 12px;
+        --sp-md: 24px;
+        --sp-lg: 48px;
+        --sp-xl: 96px;
+      }
+
+      /* Text-wrap で和文・英文の改行品質を上げる（Chrome 114+, Safari 17.5+, Firefox 121+） */
+      h1, h2, h3, h4, .hero-eyebrow, .step-heading p {
+        text-wrap: balance;
+      }
+      p, .philosophy-body, .philosophy-closer, .bento-desc, .case-text, .modal-desc, .case-preview-result {
+        text-wrap: pretty;
       }
 
       * { margin: 0; padding: 0; box-sizing: border-box; }
