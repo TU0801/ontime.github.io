@@ -94,13 +94,17 @@ export function initWebGLRenderer(
   const flowMesh = new Mesh(gl, { geometry: flowGeometry, program: flowProgram });
   flowMesh.setParent(scene);
 
-  // Post-process: Bloom composite (1 pass、scene → bloom additive blend)
+  // Post-process: bloom + split-tone grading を 1 pass で処理。
+  // OGL 1.x の Post で多段パス化するとシーン FBO の premultiplied alpha が
+  // 二重に効いて色が潰れるため（Phase 12 調査）、composite 側に全部集約する。
   const post = new Post(gl);
-  post.addPass({
+  const compositePass = post.addPass({
     fragment: bloomFrag,
     uniforms: {
       uResolution: { value: [window.innerWidth, window.innerHeight] },
-      uIntensity: { value: 0.5 },
+      uIntensity: { value: 0.55 },
+      uScroll: { value: 0 },
+      uAudioEnergy: { value: 0 },
     },
   });
 
@@ -127,6 +131,11 @@ export function initWebGLRenderer(
     flowProgram.uniforms.uAudioHigh.value = audio.high;
     flowProgram.uniforms.uScroll.value = scroll.progress;
     flowProgram.uniforms.uScrollVelocity.value = scroll.velocity;
+
+    // composite pass: bloom 強度 + grading uniform を毎フレーム更新
+    compositePass.uniforms.uIntensity.value = 0.55 + Math.abs(scroll.velocity) * 0.4;
+    compositePass.uniforms.uScroll.value = scroll.progress;
+    compositePass.uniforms.uAudioEnergy.value = audio.energy;
 
     post.render({ scene });
     raf = requestAnimationFrame(render);
