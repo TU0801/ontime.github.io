@@ -28,6 +28,11 @@ import Philosophy from '../components/Philosophy.astro';
     style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none"
   ></canvas>
   <canvas
+    id="hero-ripple-canvas"
+    aria-hidden="true"
+    style="position:absolute;top:0;left:0;z-index:1;pointer-events:none;mix-blend-mode:multiply"
+  ></canvas>
+  <canvas
     id="trail-canvas"
     aria-hidden="true"
     style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9997;pointer-events:none"

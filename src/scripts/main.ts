@@ -18,6 +18,7 @@ import {
   initHeroParallaxFallback,
   initScrollProgressFallback,
 } from './scroll-fallback';
+import { type HeroRippleHandle, initHeroRipple } from './webgl/hero-ripple';
 import { initParticleField, type ParticleHandle } from './webgl/particles';
 import { detectInitialTier, startFPSMonitor } from './webgl/quality';
 import { initWebGLRenderer, type WebGLHandle } from './webgl/renderer';
@@ -66,6 +67,7 @@ document.addEventListener('astro:page-load', () => {
 let webglHandle: WebGLHandle | null = null;
 let particleHandle: ParticleHandle | null = null;
 let ribbonHandle: RibbonHandle | null = null;
+let heroRippleHandle: HeroRippleHandle | null = null;
 let stopFps: (() => void) | null = null;
 let canvas2dStarted = false;
 
@@ -76,6 +78,8 @@ function disposeCanvas(): void {
   particleHandle = null;
   ribbonHandle?.dispose();
   ribbonHandle = null;
+  heroRippleHandle?.dispose();
+  heroRippleHandle = null;
   stopFps?.();
   stopFps = null;
   canvas2dStarted = false;
@@ -114,6 +118,12 @@ function bootCanvas(): void {
   const isTouch = matchMedia('(hover: none), (pointer: coarse)').matches;
   if (!isTouch && trailCanvas instanceof HTMLCanvasElement) {
     ribbonHandle = initRibbonTrail(trailCanvas);
+  }
+
+  // Hero 背面に ink-pool ripple plane を起動
+  const heroRippleCanvas = document.getElementById('hero-ripple-canvas');
+  if (heroRippleCanvas instanceof HTMLCanvasElement) {
+    heroRippleHandle = initHeroRipple(heroRippleCanvas);
   }
 
   // FPS 監視（低 FPS が 3 秒連続したら警告）
