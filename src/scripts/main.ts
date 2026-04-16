@@ -5,6 +5,7 @@ import { isReducedMotion, subscribeReducedMotion } from '../lib/motion';
 import { initAmbientToggle } from './audio/toggle';
 import { initCanvasBackground } from './canvas-bg';
 import { initCharPhysics } from './char-physics';
+import { initCommandPalette } from './command-palette';
 import { initCounters } from './counters';
 import { initCustomCursor, initMagneticElements } from './cursor';
 import { initDepthParallax } from './depth-parallax';
@@ -46,6 +47,7 @@ const isIndexPage = (): boolean => !!document.querySelector('.hero');
 
 let disposeParallax: (() => void) | undefined;
 let disposeCharPhysics: (() => void) | undefined;
+let disposeCmdK: (() => void) | undefined;
 
 const initPerPage = (): void => {
   if (!isIndexPage()) return;
@@ -61,6 +63,8 @@ const initPerPage = (): void => {
   disposeParallax = initDepthParallax() ?? undefined;
   disposeCharPhysics?.();
   disposeCharPhysics = initCharPhysics() ?? undefined;
+  disposeCmdK?.();
+  disposeCmdK = initCommandPalette() ?? undefined;
 };
 
 document.addEventListener('astro:page-load', () => {
@@ -161,6 +165,8 @@ document.addEventListener('astro:before-swap', () => {
   disposeParallax = undefined;
   disposeCharPhysics?.();
   disposeCharPhysics = undefined;
+  disposeCmdK?.();
+  disposeCmdK = undefined;
 });
 document.addEventListener('astro:page-load', () => {
   // 初回は load イベント相当、SPA ナビ後もここを通る

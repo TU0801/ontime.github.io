@@ -19,11 +19,11 @@ type CharState = {
   vy: number;
 };
 
-export function initCharPhysics(): (() => void) | void {
-  if (isTouchDevice || prefersReducedMotion) return;
+export function initCharPhysics(): (() => void) | undefined {
+  if (isTouchDevice || prefersReducedMotion) return undefined;
 
   const chars = Array.from(document.querySelectorAll<HTMLElement>('.hero-title .char'));
-  if (chars.length === 0) return;
+  if (chars.length === 0) return undefined;
 
   const states: CharState[] = chars.map((el) => ({ el, x: 0, y: 0, vx: 0, vy: 0 }));
 
