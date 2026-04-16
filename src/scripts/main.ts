@@ -4,6 +4,7 @@
 import { isReducedMotion, subscribeReducedMotion } from '../lib/motion';
 import { initAmbientToggle } from './audio/toggle';
 import { initCanvasBackground } from './canvas-bg';
+import { initCharPhysics } from './char-physics';
 import { initCounters } from './counters';
 import { initCustomCursor, initMagneticElements } from './cursor';
 import { initDepthParallax } from './depth-parallax';
@@ -44,6 +45,7 @@ initFontLoading();
 const isIndexPage = (): boolean => !!document.querySelector('.hero');
 
 let disposeParallax: (() => void) | undefined;
+let disposeCharPhysics: (() => void) | undefined;
 
 const initPerPage = (): void => {
   if (!isIndexPage()) return;
@@ -57,6 +59,8 @@ const initPerPage = (): void => {
   initAmbientToggle();
   disposeParallax?.();
   disposeParallax = initDepthParallax() ?? undefined;
+  disposeCharPhysics?.();
+  disposeCharPhysics = initCharPhysics() ?? undefined;
 };
 
 document.addEventListener('astro:page-load', () => {
@@ -155,6 +159,8 @@ document.addEventListener('astro:before-swap', () => {
   disposeCanvas();
   disposeParallax?.();
   disposeParallax = undefined;
+  disposeCharPhysics?.();
+  disposeCharPhysics = undefined;
 });
 document.addEventListener('astro:page-load', () => {
   // 初回は load イベント相当、SPA ナビ後もここを通る
