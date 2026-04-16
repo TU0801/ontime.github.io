@@ -1,0 +1,31 @@
+---
+// Labs セクション: 生成的アート（domain warping fbm）で技術表現
+// Round 8 / Phase 16 で追加。CaseStudies と CTA の間に配置。
+---
+
+<section class="labs section-hidden">
+  <div class="container">
+    <h3>LABS</h3>
+    <div class="labs-grid">
+      <div class="labs-canvas-wrap">
+        <canvas id="labs-canvas" aria-label="技術的実験のビジュアル"></canvas>
+        <span class="labs-hint" aria-hidden="true">マウスで干渉できます</span>
+      </div>
+      <div class="labs-text">
+        <h4>技術的な実験と表現</h4>
+        <p>
+          生成的アートは、私たちの技術アウトプットと同じ原理で動いています。<br />
+          ノイズ関数を二段階にネストした Domain Warping。<br />
+          マウスの位置で流体が歪み、音と呼応して流れが変わる。<br />
+          システムは単に「計算」しているのではなく、<em>反応</em>しています。
+        </p>
+        <ul class="labs-stack">
+          <li>WebGL 2 / OGL</li>
+          <li>Simplex noise × 5 octaves</li>
+          <li>Domain warping (2-pass fbm)</li>
+          <li>Audio FFT reactive</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

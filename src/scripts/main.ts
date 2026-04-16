@@ -20,6 +20,7 @@ import {
   initScrollProgressFallback,
 } from './scroll-fallback';
 import { type HeroRippleHandle, initHeroRipple } from './webgl/hero-ripple';
+import { initLabsCanvas, type LabsHandle } from './webgl/labs-canvas';
 import { initParticleField, type ParticleHandle } from './webgl/particles';
 import { detectInitialTier, startFPSMonitor } from './webgl/quality';
 import { initWebGLRenderer, type WebGLHandle } from './webgl/renderer';
@@ -73,6 +74,7 @@ let webglHandle: WebGLHandle | null = null;
 let particleHandle: ParticleHandle | null = null;
 let ribbonHandle: RibbonHandle | null = null;
 let heroRippleHandle: HeroRippleHandle | null = null;
+let labsHandle: LabsHandle | null = null;
 let stopFps: (() => void) | null = null;
 let canvas2dStarted = false;
 
@@ -85,6 +87,8 @@ function disposeCanvas(): void {
   ribbonHandle = null;
   heroRippleHandle?.dispose();
   heroRippleHandle = null;
+  labsHandle?.dispose();
+  labsHandle = null;
   stopFps?.();
   stopFps = null;
   canvas2dStarted = false;
@@ -129,6 +133,12 @@ function bootCanvas(): void {
   const heroRippleCanvas = document.getElementById('hero-ripple-canvas');
   if (heroRippleCanvas instanceof HTMLCanvasElement) {
     heroRippleHandle = initHeroRipple(heroRippleCanvas);
+  }
+
+  // Labs セクションの generative art
+  const labsCanvas = document.getElementById('labs-canvas');
+  if (labsCanvas instanceof HTMLCanvasElement) {
+    labsHandle = initLabsCanvas(labsCanvas);
   }
 
   // FPS 監視（低 FPS が 3 秒連続したら警告）
