@@ -22,6 +22,7 @@
     "*.{ts,js,mjs,cjs,json}": "biome check --write --no-errors-on-unmatched"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.2",
     "@astrojs/vercel": "^10.0.4",
     "@fontsource-variable/montserrat": "^5.2.8",
     "@fontsource-variable/noto-sans-jp": "^5.2.10",
