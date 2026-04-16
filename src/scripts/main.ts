@@ -6,6 +6,7 @@ import { initAmbientToggle } from './audio/toggle';
 import { initCanvasBackground } from './canvas-bg';
 import { initCounters } from './counters';
 import { initCustomCursor, initMagneticElements } from './cursor';
+import { initDepthParallax } from './depth-parallax';
 import { applyTouchDeviceFlag, initFontLoading } from './flags';
 import { initInkFx } from './ink-fx';
 import { initModal } from './modal';
@@ -41,6 +42,8 @@ initFontLoading();
 // で登録されるので navigation 後に /check でも発火する。#hero-root で index 限定にガード。
 const isIndexPage = (): boolean => !!document.querySelector('.hero');
 
+let disposeParallax: (() => void) | undefined;
+
 const initPerPage = (): void => {
   if (!isIndexPage()) return;
   initModal();
@@ -51,6 +54,8 @@ const initPerPage = (): void => {
   initSmoothScroll();
   initScrollAnimations();
   initAmbientToggle();
+  disposeParallax?.();
+  disposeParallax = initDepthParallax() ?? undefined;
 };
 
 document.addEventListener('astro:page-load', () => {
@@ -138,6 +143,8 @@ function bootCanvas(): void {
 // View Transitions の swap 前にリソースを解放して、ナビゲーション後に新しい canvas で再起動
 document.addEventListener('astro:before-swap', () => {
   disposeCanvas();
+  disposeParallax?.();
+  disposeParallax = undefined;
 });
 document.addEventListener('astro:page-load', () => {
   // 初回は load イベント相当、SPA ナビ後もここを通る

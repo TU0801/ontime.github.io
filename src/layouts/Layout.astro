@@ -235,6 +235,12 @@ const jsonLd = {
         height: 100vh;
         display: flex; align-items: center; justify-content: center;
         text-align: center;
+        perspective: 1200px;
+        perspective-origin: 50% 45%;
+      }
+      .hero-content {
+        transform-style: preserve-3d;
+        will-change: transform;
       }
       .hero-content h1 {
         font-size: clamp(2.4rem, 5vw + 1rem, 5rem);
