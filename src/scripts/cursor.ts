@@ -7,15 +7,12 @@ function lerp(a: number, b: number, f: number): number {
 export function initCustomCursor(): void {
   if (isTouchDevice || prefersReducedMotion) return;
   const cursor = document.getElementById('custom-cursor');
-  const trail = document.getElementById('cursor-trail');
-  if (!cursor || !trail) return;
+  if (!cursor) return;
 
-  let cx = -100,
-    cy = -100,
-    tx = -100,
-    ty = -100;
-  let trX = -100,
-    trY = -100;
+  let cx = -100;
+  let cy = -100;
+  let tx = -100;
+  let ty = -100;
 
   document.addEventListener('mousemove', (e) => {
     tx = e.clientX;
@@ -23,11 +20,9 @@ export function initCustomCursor(): void {
   });
   document.addEventListener('mouseenter', () => {
     cursor.classList.add('visible');
-    trail.classList.add('visible');
   });
   document.addEventListener('mouseleave', () => {
     cursor.classList.remove('visible');
-    trail.classList.remove('visible');
   });
 
   const hoverSel = '.cta-btn, .bento-card, .logo, .close-btn, a, .case-preview';
@@ -47,10 +42,9 @@ export function initCustomCursor(): void {
   function tick(): void {
     cx = lerp(cx, tx, 0.25);
     cy = lerp(cy, ty, 0.25);
-    cursor!.style.transform = `translate(${cx}px,${cy}px) translate(-50%,-50%)`;
-    trX = lerp(trX, cx, 0.15);
-    trY = lerp(trY, cy, 0.15);
-    trail!.style.transform = `translate(${trX}px,${trY}px) translate(-50%,-50%)`;
+    if (cursor) {
+      cursor.style.transform = `translate(${cx}px,${cy}px) translate(-50%,-50%)`;
+    }
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);

@@ -21,6 +21,7 @@ import {
 import { initParticleField, type ParticleHandle } from './webgl/particles';
 import { detectInitialTier, startFPSMonitor } from './webgl/quality';
 import { initWebGLRenderer, type WebGLHandle } from './webgl/renderer';
+import { initRibbonTrail, type RibbonHandle } from './webgl/ribbon-trail';
 
 function initAfterPaint(): void {
   enhanceHeader();
@@ -53,6 +54,7 @@ if ('requestIdleCallback' in window) {
 // === Canvas 起動: WebGL 優先 + tier 判定 + reduced-motion 尊重 + Canvas 2D fallback ===
 let webglHandle: WebGLHandle | null = null;
 let particleHandle: ParticleHandle | null = null;
+let ribbonHandle: RibbonHandle | null = null;
 let stopFps: (() => void) | null = null;
 let canvas2dStarted = false;
 
@@ -84,6 +86,13 @@ function bootCanvas(): void {
     particleHandle = initParticleField(particlesCanvas, particleCount, pointSize);
   }
 
+  // 独立 canvas で cursor ribbon trail を起動（タッチ端末では初期化しない）
+  const trailCanvas = document.getElementById('trail-canvas');
+  const isTouch = matchMedia('(hover: none), (pointer: coarse)').matches;
+  if (!isTouch && trailCanvas instanceof HTMLCanvasElement) {
+    ribbonHandle = initRibbonTrail(trailCanvas);
+  }
+
   // FPS 監視（低 FPS が 3 秒連続したら警告）
   stopFps = startFPSMonitor(
     () => undefined,
@@ -105,6 +114,10 @@ subscribeReducedMotion((reduced) => {
     if (particleHandle) {
       particleHandle.dispose();
       particleHandle = null;
+    }
+    if (ribbonHandle) {
+      ribbonHandle.dispose();
+      ribbonHandle = null;
     }
     if (stopFps) {
       stopFps();

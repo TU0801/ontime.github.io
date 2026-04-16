@@ -158,15 +158,8 @@ const jsonLd = {
         background: linear-gradient(135deg, rgba(46,81,128,0.32), rgba(30,58,95,0.32), rgba(15,28,48,0.32));
         border-color: transparent;
       }
-      .cursor-trail {
-        position: fixed; width: 8px; height: 8px;
-        background: rgba(30,58,95,0.28); border-radius: 50%;
-        pointer-events: none; z-index: 9998;
-        transform: translate(-50%, -50%); will-change: transform; opacity: 0;
-      }
-      .cursor-trail.visible { opacity: 1; }
-      html.touch-device .custom-cursor,
-      html.touch-device .cursor-trail { display: none; }
+      html.touch-device .custom-cursor { display: none; }
+      html.touch-device #trail-canvas { display: none; }
 
       .container {
         max-width: 1140px;
@@ -371,7 +364,7 @@ const jsonLd = {
           animation-iteration-count: 1 !important;
           transition-duration: 0.01ms !important;
         }
-        .custom-cursor, .cursor-trail, .scroll-progress { display: none !important; }
+        .custom-cursor, #trail-canvas, .scroll-progress { display: none !important; }
         .hero-title .char, .hero-subtitle .word, .hero-eyebrow, .cta-btn, .logo {
           opacity: 1 !important; transform: none !important; filter: url(#ink-filter) !important;
           clip-path: none !important;
