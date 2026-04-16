@@ -57,6 +57,10 @@ const jsonLd = {
     <link rel="canonical" href={canonicalURL} />
     <title>{title}</title>
 
+    <!-- パフォーマンス: font preload + preconnect（LCP 短縮） -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
     <!-- OpenGraph / Twitter Card -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
@@ -133,6 +137,34 @@ const jsonLd = {
         overflow-x: hidden;
         width: 100%;
         cursor: none;
+      }
+
+      /* a11y: キーボード操作時に meta コンテンツへ即ジャンプ */
+      .skip-link {
+        position: fixed;
+        top: -40px; left: 16px;
+        padding: 8px 16px;
+        background: #1E3A5F;
+        color: #F4F3EE;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border-radius: 6px;
+        z-index: 10000;
+        transition: top 0.2s ease;
+      }
+      .skip-link:focus-visible { top: 16px; outline: 3px solid #5A7A94; outline-offset: 2px; }
+
+      /* Below-the-fold セクションに content-visibility を当てて
+         初期レンダリングコストを下げる（LCP/TBT 改善） */
+      .tech-showcase,
+      .impact-numbers,
+      .case-studies,
+      .labs,
+      .pre-footer-cta,
+      footer {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 700px;
       }
       .fonts-loaded body {
         font-family: 'Montserrat Variable', 'Noto Sans JP Variable', sans-serif;
@@ -693,6 +725,7 @@ const jsonLd = {
     </style>
   </head>
   <body>
+    <a href="#main" class="skip-link">メインコンテンツへスキップ</a>
     <slot />
   </body>
 </html>
