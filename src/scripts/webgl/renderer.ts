@@ -6,6 +6,7 @@
 import { Mesh, Post, Program, Renderer, Transform, Triangle } from 'ogl';
 
 import { sampleAudioFeatures } from '../audio/analyser';
+import { sampleScrollFeatures } from '../scroll/scroll-state';
 import type { QualityTier } from './quality';
 import basicVert from './shaders/basic.vert';
 import bloomFrag from './shaders/bloom-composite.frag';
@@ -85,6 +86,8 @@ export function initWebGLRenderer(
       uAudioBass: { value: 0 },
       uAudioMid: { value: 0 },
       uAudioHigh: { value: 0 },
+      uScroll: { value: 0 },
+      uScrollVelocity: { value: 0 },
     },
     transparent: true,
   });
@@ -113,6 +116,7 @@ export function initWebGLRenderer(
   const render = (): void => {
     time += 0.016;
     const audio = sampleAudioFeatures();
+    const scroll = sampleScrollFeatures();
     flowProgram.uniforms.uTime.value = time;
     flowProgram.uniforms.uMouse.value = [mouseX, mouseY];
     flowProgram.uniforms.uResolution.value = [window.innerWidth, window.innerHeight];
@@ -121,6 +125,8 @@ export function initWebGLRenderer(
     flowProgram.uniforms.uAudioBass.value = audio.bass;
     flowProgram.uniforms.uAudioMid.value = audio.mid;
     flowProgram.uniforms.uAudioHigh.value = audio.high;
+    flowProgram.uniforms.uScroll.value = scroll.progress;
+    flowProgram.uniforms.uScrollVelocity.value = scroll.velocity;
 
     post.render({ scene });
     raf = requestAnimationFrame(render);

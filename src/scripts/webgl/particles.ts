@@ -5,6 +5,7 @@
 import { Geometry, Mesh, Program, Renderer, Transform } from 'ogl';
 
 import { sampleAudioFeatures } from '../audio/analyser';
+import { sampleScrollFeatures } from '../scroll/scroll-state';
 import particlesFrag from './shaders/particles.frag';
 import particlesVert from './shaders/particles.vert';
 
@@ -82,6 +83,8 @@ export function initParticleField(
       uAudioBass: { value: 0 },
       uAudioMid: { value: 0 },
       uAudioHigh: { value: 0 },
+      uScroll: { value: 0 },
+      uScrollVelocity: { value: 0 },
     },
     transparent: true,
     depthTest: false,
@@ -97,6 +100,7 @@ export function initParticleField(
   const render = (): void => {
     time += 0.016;
     const audio = sampleAudioFeatures();
+    const scroll = sampleScrollFeatures();
     program.uniforms.uTime.value = time;
     program.uniforms.uMouse.value = [mouseX, mouseY];
     program.uniforms.uResolution.value = [window.innerWidth, window.innerHeight];
@@ -104,6 +108,8 @@ export function initParticleField(
     program.uniforms.uAudioBass.value = audio.bass;
     program.uniforms.uAudioMid.value = audio.mid;
     program.uniforms.uAudioHigh.value = audio.high;
+    program.uniforms.uScroll.value = scroll.progress;
+    program.uniforms.uScrollVelocity.value = scroll.velocity;
     renderer.render({ scene });
     raf = requestAnimationFrame(render);
   };
