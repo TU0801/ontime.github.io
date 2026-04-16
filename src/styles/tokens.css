@@ -1,0 +1,71 @@
+/* ====================================================================
+ * ONTIME Design Tokens
+ * ブランドの視覚言語を 1 箇所に集約。Layout.astro から import されるので、
+ * CSS カスタムプロパティを参照する全てのコンポーネントに自動で伝播する。
+ * ==================================================================== */
+
+:root {
+  /* ===== Palette: モノクローム × 深コバルト ===== */
+  --bg-color: #f4f3ee; /* ページ背景（クリーム） */
+  --bg-inverse: #0f1115; /* 反転（dark sections / modal） */
+  --surface-soft: #fbfaf6; /* カード / パネル */
+  --surface-mid: #eeebe3; /* section 区切り */
+  --surface-deep: #d9d4c7; /* footer border */
+
+  --text-main: #2a2a2a; /* charcoal */
+  --text-sub: #6b6f76; /* slate */
+  --text-muted: #9ca0a7; /* light gray */
+
+  /* Accent palette */
+  --accent: #1e3a5f; /* primary deep cobalt */
+  --accent-soft: #5a7a94; /* dusty blue */
+  --accent-deep: #0f1c30; /* darker cobalt */
+  --accent-muted: #a69f93; /* warm taupe */
+
+  /* 後方互換エイリアス（既存セレクタを壊さない） */
+  --accent-cyan: #1e3a5f;
+  --accent-purple: #1e3a5f;
+  --accent-orange: #5a7a94;
+  --accent-gradient: linear-gradient(135deg, #2e5180, #1e3a5f, #0f1c30);
+
+  /* Surface overlays */
+  --glass-bg: rgba(244, 243, 238, 0.85);
+  --modal-bg: rgba(244, 243, 238, 0.95);
+
+  /* ===== Typography scale ===== */
+  --fs-display: clamp(2.4rem, 5vw + 1rem, 5rem);
+  --fs-h2: clamp(1.2rem, 2vw + 0.5rem, 2rem);
+  --fs-h3: 0.8rem;
+  --fs-body: 1rem;
+  --fs-small: 0.85rem;
+
+  /* ===== Spacing scale ===== */
+  --sp-xs: 4px;
+  --sp-sm: 12px;
+  --sp-md: 24px;
+  --sp-lg: 48px;
+  --sp-xl: 96px;
+
+  /* ===== Motion & shape ===== */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --ease-out-quart: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quart: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 0.2s;
+  --dur-mid: 0.4s;
+  --dur-slow: 0.8s;
+
+  /* ===== Interactive state uniforms（JS が毎フレーム更新） ===== */
+  --font-pulse-wght: 0; /* 0..1: audio/scroll 連動の variable-font 呼吸 */
+}
+
+/* Dark theme override（既存の body.theme-dark を尊重） */
+body.theme-dark {
+  --bg-color: #0f1115;
+  --text-main: #e8e6e1;
+  --text-sub: #9ca0a7;
+  --surface-soft: #1a1e28;
+  --surface-mid: #161922;
+}
