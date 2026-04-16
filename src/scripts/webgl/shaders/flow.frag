@@ -10,6 +10,10 @@ uniform float uTime;
 uniform vec2 uMouse;       // 画面座標ピクセル
 uniform vec2 uResolution;  // 画面サイズピクセル
 uniform float uIsDark;     // 0.0 = light, 1.0 = dark
+uniform float uAudioEnergy; // 全帯域 RMS（0..1）
+uniform float uAudioBass;   // 〜250Hz 帯（0..1）
+uniform float uAudioMid;    // 250〜2000Hz 帯（0..1）
+uniform float uAudioHigh;   // 2kHz〜 帯（0..1）
 
 // 明るめレンジを中心に据え、深いコバルトは影としてだけ使う
 vec3 paletteSample(float t) {
@@ -31,7 +35,10 @@ vec3 computeBaseColor(vec2 uv) {
   float aspect = uResolution.x / uResolution.y;
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.0;
 
-  float angle = snoise(p * 0.8 + uTime * 0.05) * 6.28318;
+  // 中域で流れ角速度を加速、低域で波長を揺らす
+  float flowSpeed = 0.05 + uAudioMid * 0.12;
+  float flowScale = 0.8 + uAudioBass * 0.35;
+  float angle = snoise(p * flowScale + uTime * flowSpeed) * 6.28318;
   vec2 dir = vec2(cos(angle), sin(angle));
 
   float streak = 0.0;
@@ -40,17 +47,24 @@ vec3 computeBaseColor(vec2 uv) {
     streak += snoise((p + dir * t) * 1.2 + uTime * 0.03);
   }
   streak = (streak / 6.0 + 1.0) * 0.5;
+  // 高域でハイライトを押し上げ（表面の輝度勾配を強調）
+  streak = clamp(streak + uAudioHigh * 0.12, 0.0, 1.0);
 
   vec3 color = paletteSample(streak);
 
   // Dark モードでは深み、Light モードではほぼそのまま明るく保つ
   color = mix(color, color * 0.32 + vec3(0.03, 0.04, 0.06), uIsDark);
 
-  // マウス位置に控えめなコバルトのホットスポット
+  // マウス位置に控えめなコバルトのホットスポット（音のエネルギーで膨張）
   vec2 mouseNorm = uMouse / uResolution;
   vec2 mp = (mouseNorm - 0.5) * vec2(aspect, 1.0) * 2.0;
   float md = distance(p, mp);
-  color += vec3(0.06, 0.10, 0.18) * smoothstep(0.55, 0.0, md) * 0.4;
+  float hotRadius = 0.55 + uAudioEnergy * 0.25;
+  float hotStrength = 0.4 + uAudioEnergy * 0.5;
+  color += vec3(0.06, 0.10, 0.18) * smoothstep(hotRadius, 0.0, md) * hotStrength;
+
+  // 低域で全体にコバルトの深さをうっすら重ねる（壁が呼吸するように）
+  color += vec3(0.03, 0.05, 0.09) * uAudioBass * 0.8;
 
   return color;
 }
@@ -66,21 +80,24 @@ void main() {
   vec2 uv = vUv;
   float dist = distance(uv, vec2(0.5));
 
-  // === Chromatic Aberration: 抑えめ 0.004 ===
-  vec2 caOffset = (uv - 0.5) * dist * 0.004;
+  // === Chromatic Aberration: 高域でオフセットを拡大（ビートで色ズレ） ===
+  float caAmount = 0.004 + uAudioHigh * 0.006;
+  vec2 caOffset = (uv - 0.5) * dist * caAmount;
   vec3 baseR = computeBaseColor(uv + caOffset);
   vec3 baseG = computeBaseColor(uv);
   vec3 baseB = computeBaseColor(uv - caOffset);
   vec3 color = vec3(baseR.r, baseG.g, baseB.b);
 
-  // === Vignette: 周辺の明度を落とす（控えめに） ===
-  float vignette = smoothstep(0.95, 0.2, dist);
+  // === Vignette: エネルギーで呼吸 ===
+  float vignetteEdge = 0.95 - uAudioEnergy * 0.12;
+  float vignette = smoothstep(vignetteEdge, 0.2, dist);
   color *= mix(1.0, vignette, 0.35);
 
   // === Film Grain ===
   float grain = hash21(uv * uResolution + uTime * 100.0) - 0.5;
   color += vec3(grain) * 0.035;
 
-  // alpha を低めにして背景クリームを透かす
-  gl_FragColor = vec4(color, 0.55);
+  // alpha も低域で微かに濃くなる（0.55 → 0.62）
+  float alpha = 0.55 + uAudioBass * 0.07;
+  gl_FragColor = vec4(color, alpha);
 }

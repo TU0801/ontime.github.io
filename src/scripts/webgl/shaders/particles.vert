@@ -7,6 +7,10 @@ uniform float uTime;
 uniform vec2 uResolution;
 uniform vec2 uMouse;
 uniform float uPointSize;
+uniform float uAudioEnergy;
+uniform float uAudioBass;
+uniform float uAudioMid;
+uniform float uAudioHigh;
 
 varying float vAlpha;
 varying vec3 vColor;
@@ -19,10 +23,12 @@ void main() {
   // 基準位置を NDC [-1..1] にマップ
   vec2 p = seed * 2.0 - 1.0;
 
-  // フローフィールド追従（4 ステップ積分）
+  // フローフィールド追従（4 ステップ積分）中域でドリフト速度を上げる
+  float drift = 0.04 + uAudioMid * 0.05;
+  float flowTime = uTime * (0.05 + uAudioMid * 0.12);
   for (int i = 0; i < 4; i++) {
-    float angle = snoise(p * 0.6 + uTime * 0.05 + float(i) * 0.5) * 6.28318;
-    p += vec2(cos(angle), sin(angle)) * 0.04;
+    float angle = snoise(p * 0.6 + flowTime + float(i) * 0.5) * 6.28318;
+    p += vec2(cos(angle), sin(angle)) * drift;
   }
 
   // 画面外に出たら反対側へラップ
@@ -37,22 +43,24 @@ void main() {
     p += normalize(toMouse) * (1.0 - md / 0.4) * 0.06;
   }
 
-  // ライフサイクル: sin 波形でフェード in/out（より静かに）
+  // ライフサイクル: sin 波形でフェード in/out（エネルギーで底上げ）
   float lifePhase = seed.y * 6.28 + uTime * 0.18;
-  vAlpha = (sin(lifePhase) * 0.5 + 0.5) * 0.85;
+  vAlpha = (sin(lifePhase) * 0.5 + 0.5) * 0.85 * (1.0 + uAudioEnergy * 0.4);
 
-  // 色: コバルト基調のモノトーン。シード位相で微細な明度バリアンス
+  // 色: コバルト基調のモノトーン。高域でハイライトへ寄せる
   vec3 deep = vec3(0.118, 0.227, 0.373);  // #1E3A5F
   vec3 mid  = vec3(0.353, 0.478, 0.580);  // #5A7A94
   vec3 haze = vec3(0.780, 0.795, 0.815);  // 蒼白
   float tone = sin(seed.x * 6.28 + uTime * 0.08) * 0.5 + 0.5;
   vec3 c1 = mix(deep, mid, tone);
-  // ごくわずかに蒼白を混ぜて空気感を出す
-  vColor = mix(c1, haze, seed.y * 0.25);
+  // 高域パルスで haze 比率を上げてキラつかせる
+  float hazeMix = seed.y * 0.25 + uAudioHigh * 0.35;
+  vColor = mix(c1, haze, clamp(hazeMix, 0.0, 0.9));
 
-  // depth-like スケール（手前の粒は大きく、奥は細かく）
+  // depth-like スケール + 低域でビートに合わせて膨らむ
   float depth = fract(seed.x * 7.13);
-  gl_PointSize = uPointSize * (0.55 + depth * 0.85);
+  float bassPulse = 1.0 + uAudioBass * 0.55;
+  gl_PointSize = uPointSize * (0.55 + depth * 0.85) * bassPulse;
 
   gl_Position = vec4(p, 0.0, 1.0);
 }

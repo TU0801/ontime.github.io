@@ -3,6 +3,8 @@
 
 import * as Tone from 'tone';
 
+import { startAudioAnalyser, stopAudioAnalyser } from './analyser';
+
 let initialized = false;
 let synth: Tone.PolySynth | null = null;
 let reverb: Tone.Reverb | null = null;
@@ -23,6 +25,9 @@ export async function startAmbient(): Promise<void> {
     envelope: { attack: 2, decay: 0.5, sustain: 0.8, release: 4 },
   }).connect(filter);
   synth.volume.value = -28;
+
+  // FFT タップ（出力は destination に流れ続け、解析のみ並列で取り出す）
+  startAudioAnalyser(reverb);
 
   for (const note of DRONE_NOTES) {
     synth.triggerAttack(note);
@@ -50,6 +55,7 @@ export function stopAmbient(): void {
     synth?.dispose();
     filter?.dispose();
     reverb?.dispose();
+    stopAudioAnalyser();
     synth = null;
     filter = null;
     reverb = null;

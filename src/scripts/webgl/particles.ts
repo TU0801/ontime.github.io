@@ -4,6 +4,7 @@
 
 import { Geometry, Mesh, Program, Renderer, Transform } from 'ogl';
 
+import { sampleAudioFeatures } from '../audio/analyser';
 import particlesFrag from './shaders/particles.frag';
 import particlesVert from './shaders/particles.vert';
 
@@ -77,6 +78,10 @@ export function initParticleField(
       uMouse: { value: [mouseX, mouseY] },
       uResolution: { value: [window.innerWidth, window.innerHeight] },
       uPointSize: { value: pointSize * dpr },
+      uAudioEnergy: { value: 0 },
+      uAudioBass: { value: 0 },
+      uAudioMid: { value: 0 },
+      uAudioHigh: { value: 0 },
     },
     transparent: true,
     depthTest: false,
@@ -91,9 +96,14 @@ export function initParticleField(
   let time = 0;
   const render = (): void => {
     time += 0.016;
+    const audio = sampleAudioFeatures();
     program.uniforms.uTime.value = time;
     program.uniforms.uMouse.value = [mouseX, mouseY];
     program.uniforms.uResolution.value = [window.innerWidth, window.innerHeight];
+    program.uniforms.uAudioEnergy.value = audio.energy;
+    program.uniforms.uAudioBass.value = audio.bass;
+    program.uniforms.uAudioMid.value = audio.mid;
+    program.uniforms.uAudioHigh.value = audio.high;
     renderer.render({ scene });
     raf = requestAnimationFrame(render);
   };
