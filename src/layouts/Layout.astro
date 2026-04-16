@@ -18,6 +18,12 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://ontime.click').toString();
+const siteOrigin = Astro.site?.origin ?? 'https://ontime.click';
+const ogTitle = title.split(' | ')[0] ?? title;
+const ogImage = new URL(
+  `/og.png?title=${encodeURIComponent(ogTitle)}&subtitle=${encodeURIComponent('Advanced Efficiency Solutions')}`,
+  siteOrigin,
+).toString();
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -57,9 +63,14 @@ const jsonLd = {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:locale" content="ja_JP" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogTitle} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
     <!-- JSON-LD 構造化データ（Organization） -->
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
