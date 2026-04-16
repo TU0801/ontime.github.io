@@ -5,6 +5,7 @@
 
 import { Mesh, Post, Program, Renderer, Transform, Triangle } from 'ogl';
 
+import { sampleAudioFeatures } from '../audio/analyser';
 import type { QualityTier } from './quality';
 import basicVert from './shaders/basic.vert';
 import bloomFrag from './shaders/bloom-composite.frag';
@@ -80,6 +81,10 @@ export function initWebGLRenderer(
       uMouse: { value: [mouseX, mouseY] },
       uResolution: { value: [window.innerWidth, window.innerHeight] },
       uIsDark: { value: 0 },
+      uAudioEnergy: { value: 0 },
+      uAudioBass: { value: 0 },
+      uAudioMid: { value: 0 },
+      uAudioHigh: { value: 0 },
     },
     transparent: true,
   });
@@ -107,10 +112,15 @@ export function initWebGLRenderer(
   let time = 0;
   const render = (): void => {
     time += 0.016;
+    const audio = sampleAudioFeatures();
     flowProgram.uniforms.uTime.value = time;
     flowProgram.uniforms.uMouse.value = [mouseX, mouseY];
     flowProgram.uniforms.uResolution.value = [window.innerWidth, window.innerHeight];
     flowProgram.uniforms.uIsDark.value = isDarkMode ? 1 : 0;
+    flowProgram.uniforms.uAudioEnergy.value = audio.energy;
+    flowProgram.uniforms.uAudioBass.value = audio.bass;
+    flowProgram.uniforms.uAudioMid.value = audio.mid;
+    flowProgram.uniforms.uAudioHigh.value = audio.high;
 
     post.render({ scene });
     raf = requestAnimationFrame(render);
