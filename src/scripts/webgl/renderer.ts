@@ -150,6 +150,8 @@ export function initWebGLRenderer(
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('touchmove', onTouchMove);
       darkObs.disconnect();
+      // WebGL コンテキスト数の上限（Chromium 16）に達しないよう明示的に解放
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
     },
   };
 }

@@ -193,6 +193,7 @@ export function initRibbonTrail(canvas: HTMLCanvasElement): RibbonHandle | null 
       window.removeEventListener('resize', onResize);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('touchmove', onTouchMove);
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
     },
   };
 }
