@@ -412,8 +412,12 @@ import Layout from '../layouts/Layout.astro';
 
   <canvas id="tech-canvas"></canvas>
 
-  <header>
-    <div class="logo gradient-text" onclick="location.href='/'">ON TIME</div>
+  <header transition:name="site-header">
+    <div
+      class="logo gradient-text"
+      onclick="location.href='/'"
+      transition:name="brand-logo"
+    >ON TIME</div>
     <a href="/" class="back-link">← TOP</a>
   </header>
 

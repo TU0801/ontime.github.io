@@ -34,7 +34,14 @@ function initAfterPaint(): void {
 applyTouchDeviceFlag();
 initFontLoading();
 
-document.addEventListener('DOMContentLoaded', () => {
+// View Transitions (ClientRouter) 有効下で DOMContentLoaded は初回しか発火しないため、
+// astro:page-load にバインドして、最初の読み込みと SPA ナビゲーション戻り両方で動く。
+// main.ts は index.astro の script からしか import されないが、listener は module-level
+// で登録されるので navigation 後に /check でも発火する。#hero-root で index 限定にガード。
+const isIndexPage = (): boolean => !!document.querySelector('.hero');
+
+const initPerPage = (): void => {
+  if (!isIndexPage()) return;
   initModal();
   initCustomCursor();
   initMagneticElements();
@@ -43,13 +50,17 @@ document.addEventListener('DOMContentLoaded', () => {
   initSmoothScroll();
   initScrollAnimations();
   initAmbientToggle();
-});
+};
 
-if ('requestIdleCallback' in window) {
-  window.requestIdleCallback(initAfterPaint, { timeout: 100 });
-} else {
-  setTimeout(initAfterPaint, 50);
-}
+document.addEventListener('astro:page-load', () => {
+  initPerPage();
+  if (!isIndexPage()) return;
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(initAfterPaint, { timeout: 100 });
+  } else {
+    setTimeout(initAfterPaint, 50);
+  }
+});
 
 // === Canvas 起動: WebGL 優先 + tier 判定 + reduced-motion 尊重 + Canvas 2D fallback ===
 let webglHandle: WebGLHandle | null = null;
@@ -57,6 +68,18 @@ let particleHandle: ParticleHandle | null = null;
 let ribbonHandle: RibbonHandle | null = null;
 let stopFps: (() => void) | null = null;
 let canvas2dStarted = false;
+
+function disposeCanvas(): void {
+  webglHandle?.dispose();
+  webglHandle = null;
+  particleHandle?.dispose();
+  particleHandle = null;
+  ribbonHandle?.dispose();
+  ribbonHandle = null;
+  stopFps?.();
+  stopFps = null;
+  canvas2dStarted = false;
+}
 
 function bootCanvas(): void {
   if (isReducedMotion()) return; // 静止画モード（描画なし）
@@ -102,8 +125,14 @@ function bootCanvas(): void {
   );
 }
 
-window.addEventListener('load', () => {
-  setTimeout(bootCanvas, 200);
+// View Transitions の swap 前にリソースを解放して、ナビゲーション後に新しい canvas で再起動
+document.addEventListener('astro:before-swap', () => {
+  disposeCanvas();
+});
+document.addEventListener('astro:page-load', () => {
+  // 初回は load イベント相当、SPA ナビ後もここを通る
+  if (!isIndexPage()) return; // /check 側は独自 Canvas を使うので起動しない
+  setTimeout(bootCanvas, 120);
 });
 
 // reduced-motion 動的変化に対応
