@@ -11,12 +11,12 @@ const MAX_BENTO_TILT = 7.5; // degrees
 const BENTO_PERSPECTIVE = 900; // px
 const LERP = 0.12;
 
-export function initDepthParallax(): (() => void) | void {
-  if (isTouchDevice || prefersReducedMotion) return;
+export function initDepthParallax(): (() => void) | undefined {
+  if (isTouchDevice || prefersReducedMotion) return undefined;
 
   const hero = document.querySelector<HTMLElement>('.hero-content');
   const cards = Array.from(document.querySelectorAll<HTMLElement>('.bento-card'));
-  if (!hero && cards.length === 0) return;
+  if (!hero && cards.length === 0) return undefined;
 
   let mx = window.innerWidth / 2;
   let my = window.innerHeight / 2;
