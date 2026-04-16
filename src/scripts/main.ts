@@ -21,6 +21,7 @@ import {
   initHeroParallaxFallback,
   initScrollProgressFallback,
 } from './scroll-fallback';
+import { initVariableFontMotion } from './variable-font';
 import { type HeroRippleHandle, initHeroRipple } from './webgl/hero-ripple';
 import { initLabsCanvas, type LabsHandle } from './webgl/labs-canvas';
 import { initParticleField, type ParticleHandle } from './webgl/particles';
@@ -48,6 +49,7 @@ const isIndexPage = (): boolean => !!document.querySelector('.hero');
 let disposeParallax: (() => void) | undefined;
 let disposeCharPhysics: (() => void) | undefined;
 let disposeCmdK: (() => void) | undefined;
+let disposeFontMotion: (() => void) | undefined;
 
 const initPerPage = (): void => {
   if (!isIndexPage()) return;
@@ -65,6 +67,8 @@ const initPerPage = (): void => {
   disposeCharPhysics = initCharPhysics() ?? undefined;
   disposeCmdK?.();
   disposeCmdK = initCommandPalette() ?? undefined;
+  disposeFontMotion?.();
+  disposeFontMotion = initVariableFontMotion() ?? undefined;
 };
 
 document.addEventListener('astro:page-load', () => {
@@ -167,6 +171,8 @@ document.addEventListener('astro:before-swap', () => {
   disposeCharPhysics = undefined;
   disposeCmdK?.();
   disposeCmdK = undefined;
+  disposeFontMotion?.();
+  disposeFontMotion = undefined;
 });
 document.addEventListener('astro:page-load', () => {
   // 初回は load イベント相当、SPA ナビ後もここを通る

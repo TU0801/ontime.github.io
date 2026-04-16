@@ -71,6 +71,7 @@ const jsonLd = {
     <style is:global>
       /* ===== Critical CSS（Above the fold） ===== */
       :root {
+        --font-pulse-wght: 0; /* 0..1、variable-font.ts が毎フレーム更新 */
         /* Surface */
         --bg-color: #F4F3EE;
         --text-main: #2A2A2A;
@@ -280,13 +281,31 @@ const jsonLd = {
         100% { clip-path: inset(0 0% 0 0); filter: url(#ink-filter); }
       }
 
-      /* Subtitle Word Reveal */
+      /* Subtitle Word Reveal + variable-font 脈動 */
       .hero-subtitle .word {
         display: inline-block; opacity: 0;
         transform: translateY(12px);
         animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         animation-delay: calc(2s + var(--i) * 0.12s);
         margin-right: 0.3em;
+        font-variation-settings: 'wght' calc(700 + var(--font-pulse-wght, 0) * 150);
+        transition: font-variation-settings 0.08s linear;
+      }
+      /* Core Tech / Case Studies / Labs の h3 も bass に呼応させる */
+      .tech-showcase h3,
+      .case-studies h3,
+      .labs h3,
+      .impact-numbers h3 {
+        font-variation-settings: 'wght' calc(700 + var(--font-pulse-wght, 0) * 80);
+        transition: font-variation-settings 0.08s linear;
+      }
+      /* Bento title は hover で wght 増 */
+      .bento-title {
+        font-variation-settings: 'wght' 700;
+        transition: font-variation-settings 0.28s cubic-bezier(0.22,1,0.36,1);
+      }
+      .bento-card:hover .bento-title {
+        font-variation-settings: 'wght' 880;
       }
 
       @keyframes gradient-shimmer {
