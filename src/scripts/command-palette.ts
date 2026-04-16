@@ -94,6 +94,17 @@ function buildCommands(): Command[] {
       keywords: 'theme dark light モード 切替 toggle',
       run: toggleTheme,
     },
+    {
+      id: 'perf',
+      label: 'パフォーマンス表示 切替',
+      hint: '⌃⇧P',
+      icon: '⟡',
+      keywords: 'fps perf performance パフォーマンス debug overlay',
+      run: () => {
+        const fn = (window as unknown as { __togglePerf?: () => void }).__togglePerf;
+        if (typeof fn === 'function') fn();
+      },
+    },
   ];
 }
 

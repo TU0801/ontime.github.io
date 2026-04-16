@@ -13,6 +13,7 @@ import { applyTouchDeviceFlag, initFontLoading } from './flags';
 import { initInkFx } from './ink-fx';
 import { initModal } from './modal';
 import { initSectionObservers } from './observers';
+import { initPerfOverlay, setPerfInfo } from './perf-overlay';
 import { initScrollAnimations } from './scroll/scroll-anim';
 import { initSmoothScroll } from './scroll/smooth';
 import {
@@ -50,6 +51,7 @@ let disposeParallax: (() => void) | undefined;
 let disposeCharPhysics: (() => void) | undefined;
 let disposeCmdK: (() => void) | undefined;
 let disposeFontMotion: (() => void) | undefined;
+let disposePerf: (() => void) | undefined;
 
 const initPerPage = (): void => {
   if (!isIndexPage()) return;
@@ -69,6 +71,8 @@ const initPerPage = (): void => {
   disposeCmdK = initCommandPalette() ?? undefined;
   disposeFontMotion?.();
   disposeFontMotion = initVariableFontMotion() ?? undefined;
+  disposePerf?.();
+  disposePerf = initPerfOverlay() ?? undefined;
 };
 
 document.addEventListener('astro:page-load', () => {
@@ -128,8 +132,9 @@ function bootCanvas(): void {
 
   // 別 canvas で GPU パーティクルを起動（OGL の uniform 衝突回避）
   const particlesCanvas = document.getElementById('particles-canvas');
+  let particleCount = 0;
   if (particlesCanvas instanceof HTMLCanvasElement) {
-    const particleCount = tier === 'high' ? 5000 : tier === 'medium' ? 2500 : 1000;
+    particleCount = tier === 'high' ? 5000 : tier === 'medium' ? 2500 : 1000;
     const pointSize = tier === 'high' ? 7 : tier === 'medium' ? 8 : 9;
     particleHandle = initParticleField(particlesCanvas, particleCount, pointSize);
   }
@@ -160,6 +165,16 @@ function bootCanvas(): void {
       console.warn('[webgl] FPS low for 3 consecutive seconds, tier:', tier);
     },
   );
+
+  // Perf overlay に現在の構成を通知
+  const canvasCount = [
+    canvas,
+    particlesCanvas,
+    document.getElementById('trail-canvas'),
+    document.getElementById('hero-ripple-canvas'),
+    document.getElementById('labs-canvas'),
+  ].filter((c): c is HTMLCanvasElement => c instanceof HTMLCanvasElement).length;
+  setPerfInfo({ tier, particleCount, canvasCount });
 }
 
 // View Transitions の swap 前にリソースを解放して、ナビゲーション後に新しい canvas で再起動
@@ -173,6 +188,8 @@ document.addEventListener('astro:before-swap', () => {
   disposeCmdK = undefined;
   disposeFontMotion?.();
   disposeFontMotion = undefined;
+  disposePerf?.();
+  disposePerf = undefined;
 });
 document.addEventListener('astro:page-load', () => {
   // 初回は load イベント相当、SPA ナビ後もここを通る
