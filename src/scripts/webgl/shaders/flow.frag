@@ -14,6 +14,8 @@ uniform float uAudioEnergy; // 全帯域 RMS（0..1）
 uniform float uAudioBass;   // 〜250Hz 帯（0..1）
 uniform float uAudioMid;    // 250〜2000Hz 帯（0..1）
 uniform float uAudioHigh;   // 2kHz〜 帯（0..1）
+uniform float uScroll;         // スクロール進行度（0..1）
+uniform float uScrollVelocity; // スクロール速度（-1..1、下向き正）
 
 // 明るめレンジを中心に据え、深いコバルトは影としてだけ使う
 vec3 paletteSample(float t) {
@@ -35,9 +37,15 @@ vec3 computeBaseColor(vec2 uv) {
   float aspect = uResolution.x / uResolution.y;
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.0;
 
-  // 中域で流れ角速度を加速、低域で波長を揺らす
-  float flowSpeed = 0.05 + uAudioMid * 0.12;
-  float flowScale = 0.8 + uAudioBass * 0.35;
+  // スクロール進行で座標系を回転（flow field がページと一緒に傾く）
+  float rot = uScroll * 0.9;
+  float cs = cos(rot);
+  float sn = sin(rot);
+  p = mat2(cs, -sn, sn, cs) * p;
+
+  // 中域で流れ角速度を加速、低域で波長を揺らす、スクロール速度で追加ブースト
+  float flowSpeed = 0.05 + uAudioMid * 0.12 + abs(uScrollVelocity) * 0.18;
+  float flowScale = 0.8 + uAudioBass * 0.35 - uScroll * 0.12;
   float angle = snoise(p * flowScale + uTime * flowSpeed) * 6.28318;
   vec2 dir = vec2(cos(angle), sin(angle));
 
@@ -49,6 +57,8 @@ vec3 computeBaseColor(vec2 uv) {
   streak = (streak / 6.0 + 1.0) * 0.5;
   // 高域でハイライトを押し上げ（表面の輝度勾配を強調）
   streak = clamp(streak + uAudioHigh * 0.12, 0.0, 1.0);
+  // スクロールが進むほど palette が深いコバルト寄りへ（下へ降りるほど影が濃く）
+  streak = clamp(streak + uScroll * 0.28, 0.0, 1.0);
 
   vec3 color = paletteSample(streak);
 
@@ -80,18 +90,19 @@ void main() {
   vec2 uv = vUv;
   float dist = distance(uv, vec2(0.5));
 
-  // === Chromatic Aberration: 高域でオフセットを拡大（ビートで色ズレ） ===
-  float caAmount = 0.004 + uAudioHigh * 0.006;
+  // === Chromatic Aberration: 高域 + スクロール速度で色ズレ（勢いでブレる） ===
+  float caAmount = 0.004 + uAudioHigh * 0.006 + abs(uScrollVelocity) * 0.012;
   vec2 caOffset = (uv - 0.5) * dist * caAmount;
   vec3 baseR = computeBaseColor(uv + caOffset);
   vec3 baseG = computeBaseColor(uv);
   vec3 baseB = computeBaseColor(uv - caOffset);
   vec3 color = vec3(baseR.r, baseG.g, baseB.b);
 
-  // === Vignette: エネルギーで呼吸 ===
-  float vignetteEdge = 0.95 - uAudioEnergy * 0.12;
+  // === Vignette: エネルギー + スクロールで呼吸 ===
+  float vignetteEdge = 0.95 - uAudioEnergy * 0.12 - abs(uScrollVelocity) * 0.15;
   float vignette = smoothstep(vignetteEdge, 0.2, dist);
-  color *= mix(1.0, vignette, 0.35);
+  float vignetteMix = 0.35 + uScroll * 0.15;
+  color *= mix(1.0, vignette, vignetteMix);
 
   // === Film Grain ===
   float grain = hash21(uv * uResolution + uTime * 100.0) - 0.5;
