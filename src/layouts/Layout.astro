@@ -251,6 +251,22 @@ const jsonLd = {
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         background-clip: text; opacity: 0;
         animation: fade-up 0.5s ease forwards;
+        border: none; padding: 0; font-family: inherit;
+        text-decoration: none;
+      }
+      .logo:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 6px;
+        border-radius: 4px;
+      }
+
+      /* 共通 focus-visible: キーボード操作時に全ボタンと link に ring */
+      button:focus-visible,
+      a:focus-visible,
+      [role="button"]:focus-visible {
+        outline: 2px solid var(--accent, #1E3A5F);
+        outline-offset: 3px;
+        border-radius: 4px;
       }
 
       /* Ambient audio toggle */
