@@ -76,31 +76,63 @@ function animateMetrics(container: HTMLElement): void {
   requestAnimationFrame(step);
 }
 
+// View Transitions API (Chrome 111+) で同一ページ morph を実現。
+// 未対応ブラウザではそのまま従来の CSS フェードが走るだけ。
+type ViewTransitionOptions = {
+  sourceEl?: HTMLElement;
+};
+
+function runWithTransition(cb: () => void, opts: ViewTransitionOptions = {}): void {
+  const doc = document as Document & {
+    startViewTransition?: (fn: () => void) => { finished: Promise<void> };
+  };
+  const source = opts.sourceEl;
+  if (typeof doc.startViewTransition === 'function') {
+    if (source) {
+      source.style.viewTransitionName = 'modal-source';
+    }
+    const t = doc.startViewTransition(() => cb());
+    t.finished.finally(() => {
+      if (source) source.style.viewTransitionName = '';
+    });
+  } else {
+    cb();
+  }
+}
+
 export function initModal(): void {
   const modalOverlay = document.getElementById('modal-overlay');
   const modalBody = document.getElementById('modal-body');
   const closeBtn = document.getElementById('modal-close');
-  if (!modalOverlay || !modalBody || !closeBtn) return;
+  const modalContent = modalOverlay?.querySelector<HTMLElement>('.modal-content');
+  if (!modalOverlay || !modalBody || !closeBtn || !modalContent) return;
+  // modal-content 側にも view-transition-name を固定（source と対になる）
+  modalContent.style.viewTransitionName = 'modal-source';
 
-  function openModal(targetId: string): void {
+  function openModal(targetId: string, sourceEl?: HTMLElement): void {
     const src = document.getElementById(targetId);
     if (!src) return;
-    modalBody!.innerHTML = src.innerHTML;
-    modalOverlay!.classList.add('active');
-    modalOverlay!.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    // フォーカスを閉じるボタンへ移し、Esc で閉じる
-    closeBtn!.focus();
-    // メトリクスがあれば描画 → 次フレームでアニメ開始
-    modalBody!.querySelectorAll<HTMLElement>('.modal-metrics').forEach((el) => {
-      renderMetrics(el);
-      requestAnimationFrame(() => animateMetrics(el));
-    });
+    runWithTransition(
+      () => {
+        modalBody!.innerHTML = src.innerHTML;
+        modalOverlay!.classList.add('active');
+        modalOverlay!.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeBtn!.focus();
+        modalBody!.querySelectorAll<HTMLElement>('.modal-metrics').forEach((el) => {
+          renderMetrics(el);
+          requestAnimationFrame(() => animateMetrics(el));
+        });
+      },
+      { sourceEl },
+    );
   }
   function closeModal(): void {
-    modalOverlay!.classList.remove('active');
-    modalOverlay!.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    runWithTransition(() => {
+      modalOverlay!.classList.remove('active');
+      modalOverlay!.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    });
   }
   // Esc キーで閉じる
   document.addEventListener('keydown', (e) => {
@@ -113,14 +145,14 @@ export function initModal(): void {
   document.querySelectorAll<HTMLElement>('.bento-card[data-target]').forEach((card) => {
     card.addEventListener('click', () => {
       const t = card.dataset.target;
-      if (t) openModal(`content-${t}`);
+      if (t) openModal(`content-${t}`, card);
     });
   });
   // Case study previews
   document.querySelectorAll<HTMLElement>('.case-preview[data-target]').forEach((card) => {
     card.addEventListener('click', () => {
       const t = card.dataset.target;
-      if (t) openModal(`content-${t}`);
+      if (t) openModal(`content-${t}`, card);
     });
   });
 
