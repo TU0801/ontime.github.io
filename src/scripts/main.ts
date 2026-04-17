@@ -12,6 +12,7 @@ import { initCustomCursor, initMagneticElements } from './cursor';
 import { initDepthParallax } from './depth-parallax';
 import { applyTouchDeviceFlag, initFontLoading } from './flags';
 import { initInkFx } from './ink-fx';
+import { initKeyboardNav } from './keyboard-nav';
 import { initModal } from './modal';
 import { initSectionObservers } from './observers';
 import { initPerfOverlay, setPerfInfo } from './perf-overlay';
@@ -54,6 +55,7 @@ let disposeCmdK: (() => void) | undefined;
 let disposeFontMotion: (() => void) | undefined;
 let disposePerf: (() => void) | undefined;
 let disposeReveal: (() => void) | undefined;
+let disposeKbNav: (() => void) | undefined;
 
 const initPerPage = (): void => {
   if (!isIndexPage()) return;
@@ -77,6 +79,8 @@ const initPerPage = (): void => {
   disposePerf = initPerfOverlay() ?? undefined;
   disposeReveal?.();
   disposeReveal = initBrandReveal() ?? undefined;
+  disposeKbNav?.();
+  disposeKbNav = initKeyboardNav() ?? undefined;
 };
 
 document.addEventListener('astro:page-load', () => {
@@ -196,6 +200,8 @@ document.addEventListener('astro:before-swap', () => {
   disposePerf = undefined;
   disposeReveal?.();
   disposeReveal = undefined;
+  disposeKbNav?.();
+  disposeKbNav = undefined;
 });
 document.addEventListener('astro:page-load', () => {
   // 初回は load イベント相当、SPA ナビ後もここを通る
