@@ -114,6 +114,9 @@ export function initModal(): void {
   function openModal(targetId: string, sourceEl?: HTMLElement): void {
     const src = document.getElementById(targetId);
     if (!src) return;
+    // 現在のフォーカスを覚えておく（close 時に戻す）
+    previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     playUiSound('open');
     runWithTransition(
       () => {
@@ -130,6 +133,9 @@ export function initModal(): void {
       { sourceEl },
     );
   }
+  // eslint-disable-next-line prefer-const
+  let previouslyFocused: HTMLElement | null = null;
+
   function closeModal(): void {
     playUiSound('close');
     runWithTransition(() => {
@@ -137,7 +143,32 @@ export function initModal(): void {
       modalOverlay!.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
     });
+    // 元の要素にフォーカスを戻す
+    if (previouslyFocused) {
+      setTimeout(() => previouslyFocused?.focus(), 0);
+      previouslyFocused = null;
+    }
   }
+
+  // 簡易フォーカストラップ: Tab / Shift+Tab でモーダル内をループ
+  function trapFocus(e: KeyboardEvent): void {
+    if (e.key !== 'Tab' || !modalOverlay!.classList.contains('active')) return;
+    const focusables = modalOverlay!.querySelectorAll<HTMLElement>(
+      'a[href], button, input, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (!first || !last) return;
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+  document.addEventListener('keydown', trapFocus);
   // Esc キーで閉じる
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modalOverlay!.classList.contains('active')) {

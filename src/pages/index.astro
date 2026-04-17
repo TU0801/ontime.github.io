@@ -44,11 +44,13 @@ import Philosophy from '../components/Philosophy.astro';
   ></canvas>
 
   <header transition:name="site-header">
-    <div
+    <button
+      type="button"
       class="logo"
       onclick="window.scrollTo({top:0, behavior:'smooth'})"
       transition:name="brand-logo"
-    >ON TIME</div>
+      aria-label="ON TIME - ページトップへ戻る"
+    >ON TIME</button>
     <button
       id="ambient-toggle"
       class="ambient-btn"
