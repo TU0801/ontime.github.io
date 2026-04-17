@@ -76,6 +76,8 @@ function animateMetrics(container: HTMLElement): void {
   requestAnimationFrame(step);
 }
 
+import { playUiSound } from './audio/ui-sounds';
+
 // View Transitions API (Chrome 111+) で同一ページ morph を実現。
 // 未対応ブラウザではそのまま従来の CSS フェードが走るだけ。
 type ViewTransitionOptions = {
@@ -112,6 +114,7 @@ export function initModal(): void {
   function openModal(targetId: string, sourceEl?: HTMLElement): void {
     const src = document.getElementById(targetId);
     if (!src) return;
+    playUiSound('open');
     runWithTransition(
       () => {
         modalBody!.innerHTML = src.innerHTML;
@@ -128,6 +131,7 @@ export function initModal(): void {
     );
   }
   function closeModal(): void {
+    playUiSound('close');
     runWithTransition(() => {
       modalOverlay!.classList.remove('active');
       modalOverlay!.setAttribute('aria-hidden', 'true');
