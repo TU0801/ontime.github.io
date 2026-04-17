@@ -675,6 +675,19 @@ const jsonLd = {
       }
       .close-btn:hover { color: #2A2A2A; }
       .close-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+      /* View Transitions pseudo-elements (Chrome 111+)
+         source → modal-content を cinematically morph */
+      @supports (view-transition-name: none) {
+        ::view-transition-group(modal-source) {
+          animation-duration: 0.42s;
+          animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        ::view-transition-old(modal-source),
+        ::view-transition-new(modal-source) {
+          animation-duration: 0.42s;
+        }
+      }
       .modal-title { font-size: 2.5rem; margin-bottom: 20px; font-weight: 900; }
       .modal-desc { font-size: 1.1rem; color: #555; margin-bottom: 40px; line-height: 1.8; }
       /* Modal metrics (mini dashboard) */
