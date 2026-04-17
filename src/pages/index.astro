@@ -2,6 +2,7 @@
 export const prerender = true;
 // Phase 1-A: 各セクションを src/components/*.astro へ抽出済み
 import Layout from '../layouts/Layout.astro';
+import BrandReveal from '../components/BrandReveal.astro';
 import CTA from '../components/CTA.astro';
 import CaseStudies from '../components/CaseStudies.astro';
 import CommandPalette from '../components/CommandPalette.astro';
@@ -16,6 +17,7 @@ import Philosophy from '../components/Philosophy.astro';
 ---
 
 <Layout>
+  <BrandReveal />
   <div class="scroll-progress" aria-hidden="true"></div>
   <div class="custom-cursor" id="custom-cursor"></div>
 

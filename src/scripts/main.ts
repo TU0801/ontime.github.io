@@ -3,6 +3,7 @@
 
 import { isReducedMotion, subscribeReducedMotion } from '../lib/motion';
 import { initAmbientToggle } from './audio/toggle';
+import { initBrandReveal } from './brand-reveal';
 import { initCanvasBackground } from './canvas-bg';
 import { initCharPhysics } from './char-physics';
 import { initCommandPalette } from './command-palette';
@@ -52,6 +53,7 @@ let disposeCharPhysics: (() => void) | undefined;
 let disposeCmdK: (() => void) | undefined;
 let disposeFontMotion: (() => void) | undefined;
 let disposePerf: (() => void) | undefined;
+let disposeReveal: (() => void) | undefined;
 
 const initPerPage = (): void => {
   if (!isIndexPage()) return;
@@ -73,6 +75,8 @@ const initPerPage = (): void => {
   disposeFontMotion = initVariableFontMotion() ?? undefined;
   disposePerf?.();
   disposePerf = initPerfOverlay() ?? undefined;
+  disposeReveal?.();
+  disposeReveal = initBrandReveal() ?? undefined;
 };
 
 document.addEventListener('astro:page-load', () => {
@@ -190,6 +194,8 @@ document.addEventListener('astro:before-swap', () => {
   disposeFontMotion = undefined;
   disposePerf?.();
   disposePerf = undefined;
+  disposeReveal?.();
+  disposeReveal = undefined;
 });
 document.addEventListener('astro:page-load', () => {
   // 初回は load イベント相当、SPA ナビ後もここを通る
