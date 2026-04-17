@@ -17,6 +17,18 @@ function supportsWebGL(): boolean {
   return !!(test.getContext('webgl2') ?? test.getContext('webgl'));
 }
 
+export type LabsControls = {
+  setZoom(z: number): void;
+  setPan(x: number, y: number): void;
+  getZoom(): number;
+  getPan(): [number, number];
+};
+
+let labsControlsShared: LabsControls | null = null;
+export function getLabsControls(): LabsControls | null {
+  return labsControlsShared;
+}
+
 export function initLabsCanvas(canvas: HTMLCanvasElement): LabsHandle | null {
   if (!supportsWebGL()) return null;
 
@@ -86,11 +98,28 @@ export function initLabsCanvas(canvas: HTMLCanvasElement): LabsHandle | null {
       uAudioBass: { value: 0 },
       uAudioMid: { value: 0 },
       uAudioHigh: { value: 0 },
+      uZoom: { value: 1 },
+      uPan: { value: [0, 0] },
     },
     transparent: false,
     depthTest: false,
     depthWrite: false,
   });
+
+  let zoom = 1;
+  let panX = 0;
+  let panY = 0;
+  labsControlsShared = {
+    setZoom: (z) => {
+      zoom = Math.max(1, Math.min(10, z));
+    },
+    setPan: (x, y) => {
+      panX = x;
+      panY = y;
+    },
+    getZoom: () => zoom,
+    getPan: () => [panX, panY],
+  };
 
   const scene = new Transform();
   const mesh = new Mesh(gl, { geometry, program });
@@ -112,6 +141,8 @@ export function initLabsCanvas(canvas: HTMLCanvasElement): LabsHandle | null {
     program.uniforms.uAudioBass.value = audio.bass;
     program.uniforms.uAudioMid.value = audio.mid;
     program.uniforms.uAudioHigh.value = audio.high;
+    program.uniforms.uZoom.value = zoom;
+    program.uniforms.uPan.value = [panX, panY];
 
     renderer.render({ scene });
   };
@@ -124,6 +155,7 @@ export function initLabsCanvas(canvas: HTMLCanvasElement): LabsHandle | null {
       window.removeEventListener('resize', onResize);
       resizeObs.disconnect();
       vizObs.disconnect();
+      labsControlsShared = null;
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     },
   };
