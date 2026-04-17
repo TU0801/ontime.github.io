@@ -3,6 +3,8 @@
 // 上下でハイライト移動、Enter で実行、Esc で閉じる。
 // Input はインクリメンタル部分一致（ひらがな/英数小文字化）でフィルタ。
 
+import { playUiSound } from './audio/ui-sounds';
+
 type Command = {
   id: string;
   label: string;
@@ -157,6 +159,7 @@ export function initCommandPalette(): (() => void) | undefined {
 
   const open = (): void => {
     isOpen = true;
+    playUiSound('open');
     overlay.classList.add('active');
     overlay.setAttribute('aria-hidden', 'false');
     input.value = '';
@@ -169,12 +172,14 @@ export function initCommandPalette(): (() => void) | undefined {
 
   const close = (): void => {
     isOpen = false;
+    playUiSound('close');
     overlay.classList.remove('active');
     overlay.setAttribute('aria-hidden', 'true');
     input.blur();
   };
 
   const run = (cmd: Command): void => {
+    playUiSound('select');
     close();
     setTimeout(() => cmd.run(), 160);
   };
@@ -195,12 +200,14 @@ export function initCommandPalette(): (() => void) | undefined {
       if (filtered.length > 0) {
         activeIdx = (activeIdx + 1) % filtered.length;
         render();
+        playUiSound('hover');
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (filtered.length > 0) {
         activeIdx = (activeIdx - 1 + filtered.length) % filtered.length;
         render();
+        playUiSound('hover');
       }
     } else if (e.key === 'Enter') {
       e.preventDefault();
