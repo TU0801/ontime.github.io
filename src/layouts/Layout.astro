@@ -677,6 +677,70 @@ const jsonLd = {
       .close-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
       .modal-title { font-size: 2.5rem; margin-bottom: 20px; font-weight: 900; }
       .modal-desc { font-size: 1.1rem; color: #555; margin-bottom: 40px; line-height: 1.8; }
+      /* Modal metrics (mini dashboard) */
+      .modal-metrics {
+        display: grid; grid-template-columns: repeat(2, 1fr);
+        gap: 16px; margin-bottom: 32px;
+      }
+      .mm-card {
+        padding: 16px 18px;
+        background: linear-gradient(135deg, rgba(30,58,95,0.04), rgba(90,122,148,0.03));
+        border: 1px solid rgba(30,58,95,0.12);
+        border-radius: 12px;
+        opacity: 0;
+        transform: translateY(8px);
+        animation: mm-in 0.45s cubic-bezier(0.22,1,0.36,1) forwards;
+        animation-delay: calc(var(--i, 0) * 90ms);
+      }
+      @keyframes mm-in { to { opacity: 1; transform: translateY(0); } }
+      .mm-label {
+        font-family: 'Montserrat Variable', sans-serif;
+        font-size: 0.72rem; font-weight: 700;
+        letter-spacing: 0.1em; text-transform: uppercase;
+        color: #8A847A; margin-bottom: 8px;
+      }
+      .mm-value-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+      .mm-value {
+        font-family: 'Montserrat Variable', sans-serif;
+        font-size: 1.8rem; font-weight: 900;
+        color: #1E3A5F; font-variant-numeric: tabular-nums;
+        line-height: 1.1;
+      }
+      .mm-delta {
+        font-size: 0.75rem; font-weight: 700;
+        color: #2E7D6E; letter-spacing: 0.03em;
+      }
+      .mm-bar {
+        position: relative; height: 6px;
+        background: rgba(30,58,95,0.08); border-radius: 3px;
+        overflow: hidden; margin-bottom: 6px;
+      }
+      .mm-bar-before {
+        position: absolute; left: 0; top: 0; bottom: 0;
+        background: rgba(166,159,147,0.4);
+        border-radius: 3px;
+      }
+      .mm-bar-after {
+        position: absolute; left: 0; top: 0; bottom: 0;
+        background: linear-gradient(90deg, #2E5180, #1E3A5F);
+        border-radius: 3px;
+        width: 100%;
+      }
+      .mm-legend {
+        display: flex; justify-content: space-between;
+        font-size: 0.68rem; color: #9CA0A7;
+        font-family: 'Montserrat Variable', sans-serif;
+      }
+      .mm-legend-after { color: #1E3A5F; font-weight: 700; }
+      body.theme-dark .mm-card { background: rgba(30,58,95,0.14); border-color: rgba(232,230,225,0.08); }
+      body.theme-dark .mm-label { color: #9CA0A7; }
+      body.theme-dark .mm-value { color: #E8E6E1; }
+      body.theme-dark .mm-legend { color: #6B7885; }
+      body.theme-dark .mm-legend-after { color: #E8E6E1; }
+      @media (max-width: 560px) {
+        .modal-metrics { grid-template-columns: 1fr; }
+      }
+
       .case-study { background: #f8f9fa; border-left: 5px solid #1E3A5F; padding: 30px; border-radius: 0 10px 10px 0; }
       .case-label { font-size: 0.8rem; font-weight: 700; color: #1E3A5F; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block; }
       .case-title { font-weight: 700; font-size: 1.2rem; margin-bottom: 10px; }
