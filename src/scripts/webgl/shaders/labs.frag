@@ -14,6 +14,8 @@ uniform vec2 uMouseUv;       // 0..1（範囲外だと -1,-1）
 uniform float uAudioBass;
 uniform float uAudioMid;
 uniform float uAudioHigh;
+uniform float uZoom;  // 1.0 = 通常、> 1 で拡大
+uniform vec2 uPan;    // UV 空間のオフセット
 
 float fbm(vec2 p) {
   float a = 0.5;
@@ -28,7 +30,8 @@ float fbm(vec2 p) {
 
 void main() {
   float aspect = uResolution.x / max(1.0, uResolution.y);
-  vec2 uv = vUv;
+  // zoom + pan: 中心基準で scale、その後 UV にパンを適用
+  vec2 uv = (vUv - 0.5) / max(0.001, uZoom) + 0.5 + uPan;
   vec2 p = vec2((uv.x - 0.5) * aspect + 0.5, uv.y) * 1.4;
 
   // マウス位置から半径 mouse influence を計算（マウスが近いと warp が激しくなる）

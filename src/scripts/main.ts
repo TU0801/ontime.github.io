@@ -13,6 +13,7 @@ import { initDepthParallax } from './depth-parallax';
 import { applyTouchDeviceFlag, initFontLoading } from './flags';
 import { initInkFx } from './ink-fx';
 import { initKeyboardNav } from './keyboard-nav';
+import { initLabsExplorer } from './labs-explorer';
 import { initModal } from './modal';
 import { initSectionObservers } from './observers';
 import { initPerfOverlay, setPerfInfo } from './perf-overlay';
@@ -56,6 +57,7 @@ let disposeFontMotion: (() => void) | undefined;
 let disposePerf: (() => void) | undefined;
 let disposeReveal: (() => void) | undefined;
 let disposeKbNav: (() => void) | undefined;
+let disposeLabsExplorer: (() => void) | undefined;
 
 const initPerPage = (): void => {
   if (!isIndexPage()) return;
@@ -81,6 +83,11 @@ const initPerPage = (): void => {
   disposeReveal = initBrandReveal() ?? undefined;
   disposeKbNav?.();
   disposeKbNav = initKeyboardNav() ?? undefined;
+  // Labs explorer は labs-canvas が起動済みであることを前提とするので、少し遅延
+  setTimeout(() => {
+    disposeLabsExplorer?.();
+    disposeLabsExplorer = initLabsExplorer() ?? undefined;
+  }, 600);
 };
 
 document.addEventListener('astro:page-load', () => {
@@ -202,6 +209,8 @@ document.addEventListener('astro:before-swap', () => {
   disposeReveal = undefined;
   disposeKbNav?.();
   disposeKbNav = undefined;
+  disposeLabsExplorer?.();
+  disposeLabsExplorer = undefined;
 });
 document.addEventListener('astro:page-load', () => {
   // 初回は load イベント相当、SPA ナビ後もここを通る
