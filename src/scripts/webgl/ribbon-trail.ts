@@ -13,14 +13,20 @@ export type RibbonHandle = {
   dispose(): void;
 };
 
-const TRAIL_LENGTH = 52; // 軌跡として保持するサンプル数
+const TRAIL_LENGTH = 64; // 軌跡として保持するサンプル数
 const HEAD_WIDTH_PX = 16; // 先端のピクセル幅（墨の筆先くらい）
-const MIN_SAMPLE_DISTANCE_PX = 6; // これ以上動いた時だけ新しいサンプルを push する
 const IDLE_THRESHOLD_PX = 0.15; // 速度が閾値未満ならその場に凝集
+// 先頭 → 末尾のバネ追従係数。先端は素早く、末端ほど慣性で遅れる。
+const FOLLOW_HEAD = 0.42;
+const FOLLOW_TAIL = 0.22;
 
 function supportsWebGL(): boolean {
   const test = document.createElement('canvas');
   return !!(test.getContext('webgl2') ?? test.getContext('webgl'));
+}
+
+function lerp(a: number, b: number, f: number): number {
+  return a + (b - a) * f;
 }
 
 type Sample = { x: number; y: number };
@@ -69,13 +75,12 @@ export function initRibbonTrail(canvas: HTMLCanvasElement): RibbonHandle | null 
   onResize();
   window.addEventListener('resize', onResize);
 
-  // 軌跡履歴をリングバッファで
+  // 軌跡履歴。spring chain で毎フレーム更新するので、単純なセグメント配列。
   const samples: Sample[] = [];
   for (let i = 0; i < TRAIL_LENGTH; i++) {
     samples.push({ x: -9999, y: -9999 });
   }
-  let lastInsertedX = -9999;
-  let lastInsertedY = -9999;
+  let initialized = false;
 
   const vertexCount = TRAIL_LENGTH * 2;
   const posArray = new Float32Array(vertexCount * 2);
@@ -117,26 +122,33 @@ export function initRibbonTrail(canvas: HTMLCanvasElement): RibbonHandle | null 
     raf = requestAnimationFrame(render);
     time += 0.016;
 
-    // 前回 push した位置から十分離れたら新サンプルを挿入。
-    // 小さい動きでは samples[0] だけ先端を追従させ、三角形の退化を防ぐ。
-    const dx = mouseX - lastInsertedX;
-    const dy = mouseY - lastInsertedY;
-    if (dx * dx + dy * dy > MIN_SAMPLE_DISTANCE_PX * MIN_SAMPLE_DISTANCE_PX) {
-      for (let i = TRAIL_LENGTH - 1; i > 0; i--) {
-        samples[i].x = samples[i - 1].x;
-        samples[i].y = samples[i - 1].y;
+    // 毎フレーム、各セグメントを前のセグメントへバネ的に近づける。
+    // 旧実装の「距離閾値を超えたらリングシフト」だと段差が生まれていたが、
+    // チェーン追従なら速度に比例した滑らかな曲線が自然に出る。
+    if (!initialized && hasPointer) {
+      for (let i = 0; i < TRAIL_LENGTH; i++) {
+        samples[i].x = mouseX;
+        samples[i].y = mouseY;
       }
-      lastInsertedX = mouseX;
-      lastInsertedY = mouseY;
+      initialized = true;
+    } else if (initialized) {
+      samples[0].x = lerp(samples[0].x, mouseX, FOLLOW_HEAD);
+      samples[0].y = lerp(samples[0].y, mouseY, FOLLOW_HEAD);
+      for (let i = 1; i < TRAIL_LENGTH; i++) {
+        const t = i / (TRAIL_LENGTH - 1);
+        const k = lerp(FOLLOW_HEAD, FOLLOW_TAIL, t);
+        samples[i].x = lerp(samples[i].x, samples[i - 1].x, k);
+        samples[i].y = lerp(samples[i].y, samples[i - 1].y, k);
+      }
     }
-    samples[0].x = mouseX;
-    samples[0].y = mouseY;
 
     for (let i = 0; i < TRAIL_LENGTH; i++) {
       const cur = samples[i];
+      // 法線は中心差分で。両端は片側差分にフォールバック。
+      const prev = samples[Math.max(i - 1, 0)];
       const next = samples[Math.min(i + 1, TRAIL_LENGTH - 1)];
-      let tx = cur.x - next.x;
-      let ty = cur.y - next.y;
+      let tx = next.x - prev.x;
+      let ty = next.y - prev.y;
       const len = Math.sqrt(tx * tx + ty * ty);
 
       // 凝集時の法線（停止中でも潰れないよう一定方向）
@@ -152,7 +164,11 @@ export function initRibbonTrail(canvas: HTMLCanvasElement): RibbonHandle | null 
       const ny = tx;
 
       const age = i / (TRAIL_LENGTH - 1);
-      const halfWidth = HEAD_WIDTH_PX * (1 - age);
+      // 先頭を点に収束させ、中盤でピーク、末尾も細らせる紡錘型。
+      // cos だと先頭が矩形カットに見えて丸カーソルと繋がらないため、sin で
+      // 両端を 0 にし、pow で先頭近くを早めに立ち上げて筆の穂先感を出す。
+      const taper = Math.sin(age * Math.PI) ** 0.6;
+      const halfWidth = HEAD_WIDTH_PX * taper;
 
       const aX = cur.x + nx * halfWidth;
       const aY = cur.y + ny * halfWidth;
@@ -175,9 +191,8 @@ export function initRibbonTrail(canvas: HTMLCanvasElement): RibbonHandle | null 
     program.uniforms.uAudioEnergy.value = audio.energy;
     program.uniforms.uScrollVelocity.value = scroll.velocity;
 
-    // ポインタがページ外に出たら何も描かない（履歴がフェード表示中の時は描く）
-    if (!hasPointer && samples[0].x < 0) {
-      // リング全体が外に出ていれば描画スキップ
+    // ポインタが一度も入っていなければ描画しない（-9999 で外に飛ばない）
+    if (!initialized) {
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       return;
