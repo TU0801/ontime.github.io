@@ -25,7 +25,6 @@
     "@astrojs/sitemap": "^3.7.2",
     "@astrojs/vercel": "^10.0.4",
     "@fontsource-variable/montserrat": "^5.2.8",
-    "@fontsource-variable/noto-sans-jp": "^5.2.10",
     "@fontsource/zen-antique": "^5.2.8",
     "@vercel/og": "^0.11.1",
     "astro": "^6.1.5",

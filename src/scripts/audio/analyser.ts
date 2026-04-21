@@ -1,11 +1,12 @@
-// オーディオ解析ブリッジ: Tone.js の出力を FFT にタップし、bass / mid / high / energy を
-// 毎フレーム WebGL uniform に橋渡しする。
+// オーディオ解析ブリッジ: 外部（ambient.ts）から Tone.FFT 相当のノードを注入され、
+// bass / mid / high / energy を毎フレーム WebGL uniform に橋渡しする。
 // 設計メモ:
+//  - Tone.js への依存を持たず、duck-typed `FFTLike` を受け取るだけ。
+//    これにより WebGL 側 / perf-overlay / variable-font が本ファイルを
+//    static import しても tone は bundle に入らない（環境音 ON 時のみ遅延ロード）
 //  - 再生していない間は smoothed 値をゆっくり 0 に戻すので、uniform 側は常に安全に読める
 //  - attack 速く decay 遅い非対称イージングでビート感を残す
 //  - 帯域分割は C2/G2/D3 ドローン + E5〜E6 アルペジオに合わせ、低域を重視
-
-import * as Tone from 'tone';
 
 export type AudioFeatures = {
   energy: number;
@@ -14,7 +15,8 @@ export type AudioFeatures = {
   high: number;
 };
 
-const FFT_SIZE = 128;
+type FFTLike = { getValue(): Float32Array };
+
 const BASS_HZ = 250;
 const MID_HZ = 2000;
 
@@ -22,7 +24,8 @@ const ATTACK = 0.45; // 立ち上がり（速く反応）
 const DECAY = 0.08; // 減衰（余韻を残す）
 const IDLE_DECAY = 0.92; // 停止後のゆっくりとしたフェード
 
-let fft: Tone.FFT | null = null;
+let fft: FFTLike | null = null;
+let fftSize = 128;
 let sampleRate = 48000;
 
 const smoothed: AudioFeatures = { energy: 0, bass: 0, mid: 0, high: 0 };
@@ -32,20 +35,13 @@ const smooth = (current: number, target: number): number => {
   return current + (target - current) * rate;
 };
 
-export function startAudioAnalyser(source: Tone.ToneAudioNode): void {
-  if (fft) return;
-  fft = new Tone.FFT({ size: FFT_SIZE, smoothing: 0.65 });
-  source.connect(fft);
-  sampleRate = Tone.getContext().sampleRate;
+export function setAnalyserNode(node: FFTLike, size: number, rate: number): void {
+  fft = node;
+  fftSize = size;
+  sampleRate = rate;
 }
 
-export function stopAudioAnalyser(): void {
-  if (!fft) return;
-  try {
-    fft.dispose();
-  } catch {
-    // ignore dispose race
-  }
+export function clearAnalyserNode(): void {
   fft = null;
 }
 
@@ -58,7 +54,7 @@ export function sampleAudioFeatures(): AudioFeatures {
     return { ...smoothed };
   }
 
-  const values = fft.getValue() as Float32Array;
+  const values = fft.getValue();
   const N = values.length;
   // Tone.FFT は dB スケール（概ね -100..0）で返す。0..1 に正規化する。
   const toLinear = (db: number): number => {
@@ -66,7 +62,7 @@ export function sampleAudioFeatures(): AudioFeatures {
     return Math.max(0, Math.min(1, (db + 100) / 100));
   };
 
-  const binHz = sampleRate / (FFT_SIZE * 2);
+  const binHz = sampleRate / (fftSize * 2);
   let bassSum = 0;
   let bassCount = 0;
   let midSum = 0;
