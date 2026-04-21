@@ -43,10 +43,11 @@
      日本語はシステムフォントで賄う（macOS: Hiragino / Win: Yu Gothic UI / Android: Noto）。
      Noto Sans JP Variable を捨てることで CSS 264KB + woff2 群を削減する代わりに、
      OS ごとにわずかに見た目が変わることを受け入れる。 */
-  --font-jp: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Yu Gothic', Meiryo,
-    system-ui, sans-serif;
-  --font-latin-jp: 'Montserrat Variable', 'Hiragino Sans', 'Yu Gothic UI', Meiryo, system-ui,
+  --font-jp:
+    "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", Meiryo, system-ui,
     sans-serif;
+  --font-latin-jp:
+    "Montserrat Variable", "Hiragino Sans", "Yu Gothic UI", Meiryo, system-ui, sans-serif;
 
   /* ===== Spacing scale ===== */
   --sp-xs: 4px;
