@@ -3,7 +3,7 @@
 // フルスクリーン中は wheel で zoom、drag で pan、Esc で exit。
 // 通常時は labs-canvas.ts のマウス追従がそのまま有効。
 
-import { getLabsControls } from './webgl/labs-canvas';
+import { getLabsControls } from './webgl/labs-controls';
 
 type Cleanup = () => void;
 

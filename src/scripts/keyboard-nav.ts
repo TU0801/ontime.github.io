@@ -56,7 +56,7 @@ function injectStyles(): void {
       color: #E8E6E1;
       padding: 14px 22px;
       border-radius: 10px;
-      font: 500 0.88rem/1.5 'Montserrat Variable', 'Noto Sans JP Variable', sans-serif;
+      font: 500 0.88rem/1.5 var(--font-latin-jp);
       letter-spacing: 0.05em;
       box-shadow: 0 14px 35px rgba(0,0,0,0.4);
       backdrop-filter: blur(10px);

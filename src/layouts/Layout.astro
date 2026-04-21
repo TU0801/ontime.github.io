@@ -4,8 +4,7 @@
 // Phase 0-4 で抽出、Phase 0-7 で ClientRouter 追加、Phase 0-5 で @fontsource 化。
 import { ClientRouter } from 'astro:transitions';
 import '@fontsource-variable/montserrat';
-import '@fontsource-variable/noto-sans-jp';
-import '@fontsource/zen-antique';
+import '@fontsource/zen-antique/japanese.css';
 import '../styles/tokens.css';
 
 interface Props {
@@ -168,7 +167,7 @@ const jsonLd = {
         contain-intrinsic-size: auto 700px;
       }
       .fonts-loaded body {
-        font-family: 'Montserrat Variable', 'Noto Sans JP Variable', sans-serif;
+        font-family: var(--font-latin-jp);
       }
       html.touch-device body { cursor: auto; }
 
@@ -589,7 +588,7 @@ const jsonLd = {
       .case-preview-result { font-size: 0.85rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 16px; }
       .case-preview-link {
         font-size: 0.8rem; font-weight: 700; color: var(--accent);
-        font-family: 'Montserrat Variable','Noto Sans JP Variable',sans-serif; letter-spacing: 0.05em;
+        font-family: var(--font-latin-jp); letter-spacing: 0.05em;
       }
 
       /* Labs section (生成的アート shader) */

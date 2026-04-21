@@ -1,4 +1,4 @@
-// Variable font motion: Montserrat / Noto Sans JP の wght 軸を
+// Variable font motion: Montserrat の wght 軸を
 // 音の帯域 + スクロール進行で 0.5〜1.5x 程度に呼吸させる。
 // ルート CSS 変数 --font-pulse-wght（0..1）に流し込み、対象セレクタ側で
 // font-variation-settings: 'wght' calc(base + var(--font-pulse-wght) * delta) を使う。

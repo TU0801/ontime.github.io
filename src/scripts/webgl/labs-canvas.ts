@@ -5,6 +5,7 @@
 import { Mesh, Program, Renderer, Transform, Triangle } from 'ogl';
 
 import { sampleAudioFeatures } from '../audio/analyser';
+import { setLabsControls } from './labs-controls';
 import basicVert from './shaders/basic.vert';
 import labsFrag from './shaders/labs.frag';
 
@@ -15,18 +16,6 @@ export type LabsHandle = {
 function supportsWebGL(): boolean {
   const test = document.createElement('canvas');
   return !!(test.getContext('webgl2') ?? test.getContext('webgl'));
-}
-
-export type LabsControls = {
-  setZoom(z: number): void;
-  setPan(x: number, y: number): void;
-  getZoom(): number;
-  getPan(): [number, number];
-};
-
-let labsControlsShared: LabsControls | null = null;
-export function getLabsControls(): LabsControls | null {
-  return labsControlsShared;
 }
 
 export function initLabsCanvas(canvas: HTMLCanvasElement): LabsHandle | null {
@@ -109,7 +98,7 @@ export function initLabsCanvas(canvas: HTMLCanvasElement): LabsHandle | null {
   let zoom = 1;
   let panX = 0;
   let panY = 0;
-  labsControlsShared = {
+  setLabsControls({
     setZoom: (z) => {
       zoom = Math.max(1, Math.min(10, z));
     },
@@ -119,7 +108,7 @@ export function initLabsCanvas(canvas: HTMLCanvasElement): LabsHandle | null {
     },
     getZoom: () => zoom,
     getPan: () => [panX, panY],
-  };
+  });
 
   const scene = new Transform();
   const mesh = new Mesh(gl, { geometry, program });
@@ -155,7 +144,7 @@ export function initLabsCanvas(canvas: HTMLCanvasElement): LabsHandle | null {
       window.removeEventListener('resize', onResize);
       resizeObs.disconnect();
       vizObs.disconnect();
-      labsControlsShared = null;
+      setLabsControls(null);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     },
   };

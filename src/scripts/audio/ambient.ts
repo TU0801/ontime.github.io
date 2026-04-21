@@ -6,9 +6,12 @@
 
 import * as Tone from 'tone';
 
-import { startAudioAnalyser, stopAudioAnalyser } from './analyser';
+import { clearAnalyserNode, setAnalyserNode } from './analyser';
+import { clearUiSoundImpl, registerUiSoundImpl } from './ui-sounds';
 
 type Disposable = { dispose(): void };
+
+const FFT_SIZE = 128;
 
 let initialized = false;
 const disposables: Disposable[] = [];
@@ -129,7 +132,15 @@ export async function startAmbient(): Promise<void> {
   });
 
   // === FFT タップ（reverb を watch）===
-  startAudioAnalyser(reverb);
+  const fft = new Tone.FFT({ size: FFT_SIZE, smoothing: 0.65 });
+  reverb.connect(fft);
+  setAnalyserNode(fft, FFT_SIZE, Tone.getContext().sampleRate);
+  disposables.push(fft);
+
+  // UI サウンドの実装を動的ロードして facade に注入
+  const uiModule = await import('./ui-sounds-impl');
+  registerUiSoundImpl(uiModule.playUiSound);
+  disposables.push({ dispose: uiModule.disposeUiSounds });
 
   initialized = true;
 }
@@ -151,7 +162,8 @@ export function stopAmbient(): void {
       }
     }
     disposables.length = 0;
-    stopAudioAnalyser();
+    clearAnalyserNode();
+    clearUiSoundImpl();
     initialized = false;
   }, 1600);
 }

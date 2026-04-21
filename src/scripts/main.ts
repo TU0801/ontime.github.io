@@ -4,7 +4,6 @@
 import { isReducedMotion, subscribeReducedMotion } from '../lib/motion';
 import { initAmbientToggle } from './audio/toggle';
 import { initBrandReveal } from './brand-reveal';
-import { initCanvasBackground } from './canvas-bg';
 import { initCharPhysics } from './char-physics';
 import { initCommandPalette } from './command-palette';
 import { initCounters } from './counters';
@@ -26,12 +25,12 @@ import {
   initScrollProgressFallback,
 } from './scroll-fallback';
 import { initVariableFontMotion } from './variable-font';
-import { type HeroRippleHandle, initHeroRipple } from './webgl/hero-ripple';
-import { initLabsCanvas, type LabsHandle } from './webgl/labs-canvas';
-import { initParticleField, type ParticleHandle } from './webgl/particles';
+import type { HeroRippleHandle } from './webgl/hero-ripple';
+import type { LabsHandle } from './webgl/labs-canvas';
+import type { ParticleHandle } from './webgl/particles';
 import { detectInitialTier, startFPSMonitor } from './webgl/quality';
-import { initWebGLRenderer, type WebGLHandle } from './webgl/renderer';
-import { initRibbonTrail, type RibbonHandle } from './webgl/ribbon-trail';
+import type { WebGLHandle } from './webgl/renderer';
+import type { RibbonHandle } from './webgl/ribbon-trail';
 
 function initAfterPaint(): void {
   enhanceHeader();
@@ -125,18 +124,22 @@ function disposeCanvas(): void {
   canvas2dStarted = false;
 }
 
-function bootCanvas(): void {
+async function bootCanvas(): Promise<void> {
   if (isReducedMotion()) return; // 静止画モード（描画なし）
 
   const canvas = document.getElementById('tech-canvas');
   if (!(canvas instanceof HTMLCanvasElement)) return;
 
   const tier = detectInitialTier();
+
+  // WebGL レンダラを遅延ロード（ogl は WebGL 対応端末で、reduced-motion 以外の時のみ）
+  const { initWebGLRenderer } = await import('./webgl/renderer');
   webglHandle = initWebGLRenderer(canvas, { tier });
 
   if (!webglHandle) {
-    // WebGL 非対応 → Canvas 2D
+    // WebGL 非対応 → Canvas 2D fallback も遅延ロード
     if (!canvas2dStarted) {
+      const { initCanvasBackground } = await import('./canvas-bg');
       initCanvasBackground();
       canvas2dStarted = true;
     }
@@ -145,32 +148,34 @@ function bootCanvas(): void {
 
   canvas.classList.add('visible');
 
-  // 別 canvas で GPU パーティクルを起動（OGL の uniform 衝突回避）
   const particlesCanvas = document.getElementById('particles-canvas');
+  const trailCanvas = document.getElementById('trail-canvas');
+  const heroRippleCanvas = document.getElementById('hero-ripple-canvas');
+  const labsCanvas = document.getElementById('labs-canvas');
+  const isTouch = matchMedia('(hover: none), (pointer: coarse)').matches;
+
+  // ogl を共有するので残り4モジュールは並列ロード
+  const [particlesMod, ribbonMod, heroRippleMod, labsMod] = await Promise.all([
+    particlesCanvas instanceof HTMLCanvasElement ? import('./webgl/particles') : null,
+    !isTouch && trailCanvas instanceof HTMLCanvasElement ? import('./webgl/ribbon-trail') : null,
+    heroRippleCanvas instanceof HTMLCanvasElement ? import('./webgl/hero-ripple') : null,
+    labsCanvas instanceof HTMLCanvasElement ? import('./webgl/labs-canvas') : null,
+  ]);
+
   let particleCount = 0;
-  if (particlesCanvas instanceof HTMLCanvasElement) {
+  if (particlesMod && particlesCanvas instanceof HTMLCanvasElement) {
     particleCount = tier === 'high' ? 5000 : tier === 'medium' ? 2500 : 1000;
     const pointSize = tier === 'high' ? 7 : tier === 'medium' ? 8 : 9;
-    particleHandle = initParticleField(particlesCanvas, particleCount, pointSize);
+    particleHandle = particlesMod.initParticleField(particlesCanvas, particleCount, pointSize);
   }
-
-  // 独立 canvas で cursor ribbon trail を起動（タッチ端末では初期化しない）
-  const trailCanvas = document.getElementById('trail-canvas');
-  const isTouch = matchMedia('(hover: none), (pointer: coarse)').matches;
-  if (!isTouch && trailCanvas instanceof HTMLCanvasElement) {
-    ribbonHandle = initRibbonTrail(trailCanvas);
+  if (ribbonMod && trailCanvas instanceof HTMLCanvasElement) {
+    ribbonHandle = ribbonMod.initRibbonTrail(trailCanvas);
   }
-
-  // Hero 背面に ink-pool ripple plane を起動
-  const heroRippleCanvas = document.getElementById('hero-ripple-canvas');
-  if (heroRippleCanvas instanceof HTMLCanvasElement) {
-    heroRippleHandle = initHeroRipple(heroRippleCanvas);
+  if (heroRippleMod && heroRippleCanvas instanceof HTMLCanvasElement) {
+    heroRippleHandle = heroRippleMod.initHeroRipple(heroRippleCanvas);
   }
-
-  // Labs セクションの generative art
-  const labsCanvas = document.getElementById('labs-canvas');
-  if (labsCanvas instanceof HTMLCanvasElement) {
-    labsHandle = initLabsCanvas(labsCanvas);
+  if (labsMod && labsCanvas instanceof HTMLCanvasElement) {
+    labsHandle = labsMod.initLabsCanvas(labsCanvas);
   }
 
   // FPS 監視（低 FPS が 3 秒連続したら警告）
@@ -182,13 +187,9 @@ function bootCanvas(): void {
   );
 
   // Perf overlay に現在の構成を通知
-  const canvasCount = [
-    canvas,
-    particlesCanvas,
-    document.getElementById('trail-canvas'),
-    document.getElementById('hero-ripple-canvas'),
-    document.getElementById('labs-canvas'),
-  ].filter((c): c is HTMLCanvasElement => c instanceof HTMLCanvasElement).length;
+  const canvasCount = [canvas, particlesCanvas, trailCanvas, heroRippleCanvas, labsCanvas].filter(
+    (c): c is HTMLCanvasElement => c instanceof HTMLCanvasElement,
+  ).length;
   setPerfInfo({ tier, particleCount, canvasCount });
 }
 
@@ -215,7 +216,9 @@ document.addEventListener('astro:before-swap', () => {
 document.addEventListener('astro:page-load', () => {
   // 初回は load イベント相当、SPA ナビ後もここを通る
   if (!isIndexPage()) return; // /check 側は独自 Canvas を使うので起動しない
-  setTimeout(bootCanvas, 120);
+  setTimeout(() => {
+    void bootCanvas();
+  }, 120);
 });
 
 // reduced-motion 動的変化に対応
@@ -236,6 +239,6 @@ subscribeReducedMotion((reduced) => {
       stopFps = null;
     }
   } else if (!reduced && !webglHandle && !canvas2dStarted) {
-    bootCanvas();
+    void bootCanvas();
   }
 });
