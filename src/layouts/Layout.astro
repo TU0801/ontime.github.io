@@ -393,6 +393,22 @@ const jsonLd = {
         font-variation-settings: 'wght' calc(700 + var(--font-pulse-wght, 0) * 150);
         transition: font-variation-settings 0.08s linear;
       }
+
+      /* Scroll-velocity choreography: 速度で字間が伸び、進行方向へ微傾斜。
+         --sv: |velocity| 0..1 / --svd: signed -1..1（scroll-kinetic.ts が毎フレーム更新）。
+         未起動時(reduced-motion 等)は var fallback 0 で無変形になる。 */
+      .hero-subtitle {
+        letter-spacing: calc(var(--sv, 0) * 0.10em);
+        transform: skewX(calc(var(--svd, 0) * -1.6deg));
+      }
+      .tech-showcase h3,
+      .case-studies h3,
+      .labs h3,
+      .impact-numbers h3 {
+        letter-spacing: calc(0.25em + var(--sv, 0) * 0.06em);
+      }
+      .labs-text h4 { letter-spacing: calc(var(--sv, 0) * 0.05em); }
+
       /* Core Tech / Case Studies / Labs の h3 も bass に呼応させる */
       .tech-showcase h3,
       .case-studies h3,

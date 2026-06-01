@@ -37,6 +37,11 @@ export function sampleScrollFeatures(): ScrollFeatures {
     return state;
   }
 
+  // 同一フレーム内の重複呼び出し（variable-font / renderer / scroll-kinetic が
+  // 各々毎フレーム呼ぶ）では再計算せず共有 state を返す。dt≈0 による velocity の
+  // 取りこぼしを防ぐ（複数 rAF 購読の安定化）。
+  if (now - lastT < 4) return state;
+
   const dt = Math.max(1, now - lastT);
   const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
 

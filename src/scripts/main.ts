@@ -17,6 +17,7 @@ import { initModal } from './modal';
 import { initSectionObservers } from './observers';
 import { initPerfOverlay, setPerfInfo } from './perf-overlay';
 import { initScrollAnimations } from './scroll/scroll-anim';
+import { initScrollKinetic } from './scroll/scroll-kinetic';
 import { initSmoothScroll } from './scroll/smooth';
 import {
   enhanceHeader,
@@ -53,6 +54,7 @@ let disposeParallax: (() => void) | undefined;
 let disposeCharPhysics: (() => void) | undefined;
 let disposeCmdK: (() => void) | undefined;
 let disposeFontMotion: (() => void) | undefined;
+let disposeScrollKinetic: (() => void) | undefined;
 let disposePerf: (() => void) | undefined;
 let disposeReveal: (() => void) | undefined;
 let disposeKbNav: (() => void) | undefined;
@@ -76,6 +78,8 @@ const initPerPage = (): void => {
   disposeCmdK = initCommandPalette() ?? undefined;
   disposeFontMotion?.();
   disposeFontMotion = initVariableFontMotion() ?? undefined;
+  disposeScrollKinetic?.();
+  disposeScrollKinetic = initScrollKinetic() ?? undefined;
   disposePerf?.();
   disposePerf = initPerfOverlay() ?? undefined;
   disposeReveal?.();
@@ -204,6 +208,8 @@ document.addEventListener('astro:before-swap', () => {
   disposeCmdK = undefined;
   disposeFontMotion?.();
   disposeFontMotion = undefined;
+  disposeScrollKinetic?.();
+  disposeScrollKinetic = undefined;
   disposePerf?.();
   disposePerf = undefined;
   disposeReveal?.();
