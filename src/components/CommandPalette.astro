@@ -52,10 +52,15 @@
 
   .cmdk-panel {
     width: min(620px, 92vw);
-    background: rgba(244, 243, 238, 0.98);
-    border: 1px solid rgba(42, 42, 42, 0.08);
+    background: rgba(244, 243, 238, 0.82);
+    backdrop-filter: blur(20px) saturate(1.6) brightness(1.04);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6) brightness(1.04);
+    border: 1px solid transparent;
     border-radius: 14px;
-    box-shadow: 0 22px 60px rgba(15, 17, 21, 0.45);
+    box-shadow:
+      inset 0 1px 0 var(--glass-rim-strong, rgba(255,255,255,0.85)),
+      inset 0 0 0 1px var(--glass-rim, rgba(255,255,255,0.55)),
+      0 22px 60px var(--glass-shadow, rgba(15,17,21,0.45));
     transform: translateY(-8px) scale(0.97);
     opacity: 0;
     transition: transform 0.22s cubic-bezier(0.22,1,0.36,1), opacity 0.18s ease;
@@ -64,8 +69,8 @@
   .cmdk-overlay.active .cmdk-panel { transform: translateY(0) scale(1); opacity: 1; }
 
   body.theme-dark .cmdk-panel {
-    background: rgba(22, 25, 34, 0.98);
-    border-color: rgba(232, 230, 225, 0.08);
+    background: rgba(22, 25, 34, 0.8);
+    border-color: transparent;
   }
 
   .cmdk-search {
