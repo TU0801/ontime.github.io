@@ -16,17 +16,37 @@
   --text-sub: #6b6f76; /* slate */
   --text-muted: #9ca0a7; /* light gray */
 
-  /* Accent palette */
-  --accent: #1e3a5f; /* primary deep cobalt */
-  --accent-soft: #5a7a94; /* dusty blue */
-  --accent-deep: #0f1c30; /* darker cobalt */
-  --accent-muted: #a69f93; /* warm taupe */
+  /* ===== Accent palette: OKLCH 基準色 + relative color syntax で派生 =====
+     2026: 単色フラットから脱却。深コバルトの一貫性を保ったまま色相を ±50° だけ
+     振った真の補助色（teal 寄り / 藍寄り）で warm-cool の僅かな対比を導入する。
+     各行は hex fallback → oklch() の二段重ね（非対応ブラウザ/構文エラー時は hex へ劣化）。 */
+  --accent: #1e3a5f; /* primary deep cobalt（基準色） */
 
-  /* 後方互換エイリアス（既存セレクタを壊さない） */
-  --accent-cyan: #1e3a5f;
-  --accent-purple: #1e3a5f;
-  --accent-orange: #5a7a94;
+  --accent-soft: #5a7a94; /* dusty blue */
+  --accent-soft: oklch(from var(--accent) calc(l + 0.22) calc(c * 0.7) calc(h - 8));
+  --accent-deep: #0f1c30; /* darker cobalt */
+  --accent-deep: oklch(from var(--accent) calc(l - 0.13) c calc(h + 4));
+  --accent-muted: #a69f93; /* warm taupe（暖色アンカー） */
+
+  /* 真の補助色（多色化の核：差し色として限定使用） */
+  --accent-teal: #285f6e; /* 青緑寄り（cool 側） */
+  --accent-teal: oklch(from var(--accent) calc(l + 0.08) calc(c + 0.015) calc(h - 50));
+  --accent-indigo: #36336a; /* 藍寄り（warm 側へ僅か） */
+  --accent-indigo: oklch(from var(--accent) calc(l - 0.01) calc(c + 0.04) calc(h + 35));
+
+  /* 後方互換エイリアス（旧『嘘セマンティック名』を真の補助色へ転換） */
+  --accent-cyan: var(--accent-teal);
+  --accent-purple: var(--accent-indigo);
+  --accent-orange: var(--accent-soft);
+
+  /* グラデーション: OKLCH 補間で知覚均一・多色（teal → cobalt → indigo） */
   --accent-gradient: linear-gradient(135deg, #2e5180, #1e3a5f, #0f1c30);
+  --accent-gradient: linear-gradient(
+    135deg in oklch,
+    var(--accent-teal),
+    var(--accent),
+    var(--accent-indigo)
+  );
 
   /* Surface overlays */
   --glass-bg: rgba(244, 243, 238, 0.85);
