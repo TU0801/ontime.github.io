@@ -88,6 +88,7 @@ export function initWebGLRenderer(
       uAudioHigh: { value: 0 },
       uScroll: { value: 0 },
       uScrollVelocity: { value: 0 },
+      uGrain: { value: 0 },
     },
     transparent: true,
   });
@@ -117,8 +118,13 @@ export function initWebGLRenderer(
 
   let raf = 0;
   let time = 0;
-  const render = (): void => {
-    time += 0.016;
+  let lastT = 0;
+  // 実フレームデルタで時間を進める。60fps 固定前提（time += 0.016）を廃し、
+  // 120Hz / 30fps でも体感速度を一定に保つ。タブ復帰時の巨大 dt は 50ms にクランプ。
+  const render = (now: number): void => {
+    const dt = lastT === 0 ? 0.016 : Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+    time += dt;
     const audio = sampleAudioFeatures();
     const scroll = sampleScrollFeatures();
     flowProgram.uniforms.uTime.value = time;
@@ -131,6 +137,7 @@ export function initWebGLRenderer(
     flowProgram.uniforms.uAudioHigh.value = audio.high;
     flowProgram.uniforms.uScroll.value = scroll.progress;
     flowProgram.uniforms.uScrollVelocity.value = scroll.velocity;
+    flowProgram.uniforms.uGrain.value = 0.4 + audio.energy * 0.5 + scroll.abs * 0.3;
 
     // composite pass: bloom 強度 + grading uniform を毎フレーム更新
     compositePass.uniforms.uIntensity.value = 0.55 + Math.abs(scroll.velocity) * 0.4;

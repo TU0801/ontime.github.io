@@ -16,6 +16,7 @@ uniform float uAudioMid;    // 250〜2000Hz 帯（0..1）
 uniform float uAudioHigh;   // 2kHz〜 帯（0..1）
 uniform float uScroll;         // スクロール進行度（0..1）
 uniform float uScrollVelocity; // スクロール速度（-1..1、下向き正）
+uniform float uGrain;          // dither/grain 強度（0..1、audio/scroll で breathe）
 
 // 明るめレンジを中心に据え、深いコバルトは影としてだけ使う
 vec3 paletteSample(float t) {
@@ -104,9 +105,16 @@ void main() {
   float vignetteMix = 0.35 + uScroll * 0.15;
   color *= mix(1.0, vignette, vignetteMix);
 
-  // === Film Grain ===
-  float grain = hash21(uv * uResolution + uTime * 100.0) - 0.5;
-  color += vec3(grain) * 0.035;
+  // === Dither + Film Grain: AI 的な過剰クリーンを意図的に荒らす（墨/和紙の手触り） ===
+  // 位相をずらした2つのハッシュで value-noise 的な粒状感を作り、
+  // 粗いセル単位の dither を重ねてグラデーションの banding を散らす。
+  vec2 gseed = uv * uResolution;
+  float n1 = hash21(gseed + uTime * 73.0);
+  float n2 = hash21(gseed.yx - uTime * 91.0);
+  float grain = (n1 + n2) * 0.5 - 0.5;            // -0.5..0.5
+  float dither = hash21(floor(gseed / 1.5)) - 0.5; // セル単位 ordered-ish dither
+  float amp = 0.030 + uGrain * 0.045;             // uGrain(0..1) で breathe
+  color += vec3(grain * amp + dither * amp * 0.4);
 
   // alpha も低域で微かに濃くなる（0.55 → 0.62）
   float alpha = 0.55 + uAudioBass * 0.07;
