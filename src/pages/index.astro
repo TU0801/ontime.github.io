@@ -62,6 +62,13 @@ import Philosophy from '../components/Philosophy.astro';
     </button>
   </header>
 
+  <!-- Progressive blur scrim: コンテンツが sticky header へ溶け込む段階ブラー（空間的深度） -->
+  <div class="scrim-top" aria-hidden="true">
+    <div class="scrim-layer" style="--b:1.5px;--m:100%"></div>
+    <div class="scrim-layer" style="--b:5px;--m:64%"></div>
+    <div class="scrim-layer" style="--b:13px;--m:30%"></div>
+  </div>
+
   <main id="main" class="container">
     <Hero />
     <Philosophy />

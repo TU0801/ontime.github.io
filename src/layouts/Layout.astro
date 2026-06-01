@@ -265,6 +265,23 @@ const jsonLd = {
       }
       body.theme-dark header.enhanced { background: rgba(15, 17, 21, 0.5); }
 
+      /* Progressive blur scrim: 複数 backdrop-filter レイヤーを段階 mask で重ね、
+         上端ほど強く・下端ほど弱いブラー勾配を作る（header 下端の空間的深度）。
+         z=9 で header(10) の下・コンテンツ(1) の上。 */
+      .scrim-top {
+        position: fixed; top: 0; left: 0; right: 0; height: 150px;
+        pointer-events: none; z-index: 9;
+      }
+      .scrim-top .scrim-layer {
+        position: absolute; inset: 0;
+        backdrop-filter: blur(var(--b));
+        -webkit-backdrop-filter: blur(var(--b));
+        -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 var(--m), transparent calc(var(--m) + 20%));
+        mask-image: linear-gradient(to bottom, #000 0, #000 var(--m), transparent calc(var(--m) + 20%));
+      }
+      html.touch-device .scrim-top { height: 100px; }
+      @media (prefers-reduced-transparency: reduce) { .scrim-top { display: none; } }
+
       .logo {
         font-weight: 900; font-size: 1.5rem; letter-spacing: 0.1em; cursor: pointer;
         background: linear-gradient(135deg, #2A2A2A, #1E3A5F);
