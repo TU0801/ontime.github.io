@@ -575,7 +575,27 @@ const jsonLd = {
       /* Bento Grid */
       @property --border-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
       .tech-showcase { padding: 100px 0; background: #EEEBE3; }
-      .bento-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding-top: 40px; }
+      /* 非対称 bento: 3列 + auto-rows。AI を 2x2 フィーチャー化し、SaaS 定番の
+         均一4列から脱却。subgrid でカード内部(icon/title/desc)の行を揃える。 */
+      .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-auto-rows: minmax(154px, auto);
+        gap: 16px; padding-top: 40px;
+      }
+      .bento-feature { grid-column: span 2; grid-row: span 2; justify-content: flex-end; }
+      /* フィーチャーカードの余白に OKLCH 補助色の subtle な光彩（overflow:hidden でクリップ） */
+      .bento-feature::before {
+        content: ''; position: absolute; right: -60px; bottom: -60px;
+        width: 280px; height: 280px; border-radius: 50%;
+        background: radial-gradient(circle, color-mix(in oklch, var(--accent-teal) 16%, transparent), transparent 70%);
+        pointer-events: none; z-index: 0;
+      }
+      .bento-feature > * { position: relative; z-index: 1; }
+      .bento-feature .bento-icon { width: 60px; height: 60px; margin-bottom: auto; }
+      .bento-feature .geo-icon { transform: scale(1.4); }
+      .bento-feature .bento-title { font-size: 1.6rem; }
+      .bento-feature .bento-desc { font-size: 1rem; max-width: 34ch; line-height: 1.7; }
       .bento-card {
         background: #FBFAF6; border-radius: 16px; padding: 32px;
         border: 1px solid #E2DED4; cursor: pointer;
@@ -595,7 +615,7 @@ const jsonLd = {
       .bento-card:hover::after { opacity: 1; animation: border-rotate 2s linear infinite; }
       @keyframes border-rotate { to { --border-angle: 360deg; } }
       .bento-card:hover {
-        transform: translate(var(--magnetic-x), var(--magnetic-y)) translateY(-4px);
+        transform: translate(var(--magnetic-x), var(--magnetic-y)) translateY(-4px) perspective(1000px) rotateX(1.6deg);
         box-shadow:
           inset 0 1px 0 var(--glass-rim-strong),
           0 16px 40px var(--glass-shadow);
@@ -891,6 +911,7 @@ const jsonLd = {
         .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 48px 24px; }
         .bento-grid { grid-template-columns: repeat(2, 1fr); }
         .bento-wide { grid-column: span 2; }
+        .bento-feature { grid-column: span 2; grid-row: span 1; }
         .case-preview-grid { grid-template-columns: 1fr; }
         .footer-grid { grid-template-columns: 1fr; gap: 32px; }
         .footer-right { justify-content: flex-start; }
@@ -899,6 +920,7 @@ const jsonLd = {
         .philosophy-lead { font-size: 1.3rem; }
         .bento-grid { grid-template-columns: 1fr; }
         .bento-wide { grid-column: span 1; }
+        .bento-feature { grid-column: span 1; grid-row: span 1; }
         .metrics-grid { grid-template-columns: 1fr 1fr; gap: 40px 16px; }
         .cta-btn { padding: 14px 36px; font-size: 0.9rem; }
       }
