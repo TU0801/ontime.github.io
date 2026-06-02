@@ -25,19 +25,11 @@ export function initScrollAnimations(): void {
     },
   });
 
-  // Bento card stagger reveal
-  gsap.from('.bento-card', {
-    opacity: 0,
-    y: 32,
-    duration: 0.7,
-    stagger: 0.08,
-    ease: 'power2.out',
-    scrollTrigger: {
-      trigger: '.tech-showcase',
-      start: 'top 70%',
-      once: true,
-    },
-  });
+  // Bento card stagger reveal は observers.ts(IntersectionObserver → .revealed) と
+  // CSS(.bento-card.revealed + :nth-child transition-delay) で完結させる。
+  // GSAP gsap.from だと content-visibility:auto の .tech-showcase で ScrollTrigger が
+  // 発火せず inline opacity:0 が固定され、カードが永続的に消える不具合があるため扱わない。
+  // (二重制御の競合: inline style が CSS の .revealed を上書きしてしまう)
 
   // Case preview
   gsap.from('.case-preview', {

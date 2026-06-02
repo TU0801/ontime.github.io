@@ -171,7 +171,9 @@ const jsonLd = {
 
       /* Below-the-fold セクションに content-visibility を当てて
          初期レンダリングコストを下げる（LCP/TBT 改善） */
-      .tech-showcase,
+      /* tech-showcase は意図的に除外: content-visibility:auto 下では observers の
+         IntersectionObserver が bento reveal トリガー(.tech-showcase)を取りこぼし、
+         カードが opacity:0 のまま固定される不具合があったため。 */
       .impact-numbers,
       .case-studies,
       .labs,
@@ -643,18 +645,23 @@ const jsonLd = {
       }
       .bento-card:hover .bento-arrow { color: #1E3A5F; transform: translateX(4px); }
 
-      .bento-card { opacity: 0; transform: translate(var(--magnetic-x,0),var(--magnetic-y,0)) translateY(20px); }
-      .bento-card.revealed {
-        opacity: 1; transform: translate(var(--magnetic-x,0),var(--magnetic-y,0)) translateY(0);
-        transition: opacity 0.5s ease, transform 0.5s ease;
+      /* bento reveal: CSS scroll-driven(view())に一本化。IntersectionObserver(observers.ts)も
+         GSAP ScrollTrigger も content-visibility 下・高速スクロールで交差を取りこぼし
+         opacity:0 が固定される不具合があったため依存しない。scroll 位置で駆動するので
+         取りこぼしゼロ。非対応ブラウザは opacity:1 で常時表示（消えない）。
+         transform は magnetic/tilt が制御するので reveal は opacity のみ扱う。 */
+      .bento-card { opacity: 1; }
+      @supports (animation-timeline: view()) {
+        .bento-card {
+          animation: bento-reveal linear both;
+          animation-timeline: view();
+          animation-range: entry 5% entry 48%;
+        }
+        @keyframes bento-reveal { from { opacity: 0; } to { opacity: 1; } }
       }
-      .bento-card:nth-child(1) { transition-delay: 0ms; }
-      .bento-card:nth-child(2) { transition-delay: 80ms; }
-      .bento-card:nth-child(3) { transition-delay: 160ms; }
-      .bento-card:nth-child(4) { transition-delay: 240ms; }
-      .bento-card:nth-child(5) { transition-delay: 320ms; }
-      .bento-card:nth-child(6) { transition-delay: 400ms; }
-      .bento-card:nth-child(7) { transition-delay: 480ms; }
+      @media (prefers-reduced-motion: reduce) {
+        .bento-card { animation: none; opacity: 1; }
+      }
 
       /* Geometric Icons */
       .geo-icon { position: relative; width: 32px; height: 32px; }
